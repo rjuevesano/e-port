@@ -3,7 +3,7 @@ User
 - username
 - password
 - type (CLIENT, SUPPLIER, ADMIN)
-- status (PENDING, ACTIVE) (PENDING, APPROVED, REJECTED)
+- status (ADMIN/CLIENT = PENDING, ACTIVE) (SUPPLIER = PENDING, APPROVED, REJECTED)
 - firstname
 - lastname
 - mobile
@@ -17,7 +17,7 @@ User
 
 Post
 - post_id (PK)
-- user_id (FK)
+- user_id
 - caption
 - image_ids
 - status (PENDING, PUBLISHED)
@@ -41,7 +41,7 @@ Booking
 - updated
 
 Rating
-- rating_id
+- rating_id (PK)
 - user_id_client
 - user_id_supplier
 - message
@@ -51,15 +51,15 @@ Rating
 
 Likes
 - like_id (PK)
-- user_id (FK)
-- post_id (FK)
+- user_id
+- post_id
 - created
 - updated
 
 Comment
 - comment_id (PK)
-- user_id (FK)
-- post_id (FK)
+- user_id
+- post_id
 - message
 - created
 - updated
