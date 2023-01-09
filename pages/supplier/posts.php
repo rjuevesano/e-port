@@ -405,7 +405,7 @@
     jQuery(document).ready(function () {
       ImgUpload();
 
-      <?php if ($_GET['open']) { ?>
+      <?php if (isset($_GET['open']) && $_GET['open']) { ?>
       $('#postInfoModal<?php echo $_GET['open'] ?>').modal('show')
       <?php } ?>
     });
