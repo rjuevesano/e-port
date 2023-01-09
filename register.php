@@ -43,6 +43,7 @@
       $conn->query($sql);
       $_SESSION['user_id'] = $conn->insert_id;
       $_SESSION['type'] = $type;
+      $_SESSION['user_avatar'] = "";
       header('Location: index.php');
     }
   }

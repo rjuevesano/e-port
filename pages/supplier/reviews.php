@@ -134,7 +134,7 @@
                             <i class="fa fa-star <?php echo $row['rate'] >= 5 ? 'text-warning' : '' ?>"></i>
                           </div>
                         </td>
-                        <td><?php echo date_format(date_create($row_comment['created']), 'D, M j Y h:ia') ?></td>
+                        <td><?php echo date_format(date_create($row['created']), 'D, M j Y h:ia') ?></td>
                       </tr>
                     <?php } ?>
                   </tbody>
