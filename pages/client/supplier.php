@@ -36,7 +36,7 @@
       $converted_date = date("Y-m-d H:i:s", strtotime($date));
       $note = validate($_POST['note']);
 
-      $sql_check = "select count(*) as total from booking where user_id_supplier=$user_id and schedule_date >= '$converted_date' and schedule_date <= '$converted_date'";
+      $sql_check = "select count(*) as total from booking where (status='PENDING' or status='ACCEPTED') and user_id_supplier=$user_id and schedule_date >= '$converted_date' and schedule_date <= '$converted_date'";
       $result_check = $conn->query($sql_check);
       $total = $result_check->fetch_assoc()['total'];
       if ($total) {
