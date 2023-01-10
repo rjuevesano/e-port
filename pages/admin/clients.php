@@ -9,6 +9,20 @@
 
   $sql = "select * from user where type='CLIENT'";
   $result = $conn->query($sql);
+
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] == 'deleteclient') {
+      if (isset($_POST['userId'])) {
+        $user_id = $_POST['userId'];
+        $sql = "delete from user where user_id=$user_id";
+        $conn->query($sql);
+        json_response([
+          'success' => true,
+          'message' => 'Successfully deleted.'
+        ]);
+      }
+    }
+  }
 ?>
 
 <!DOCTYPE html>
@@ -47,6 +61,7 @@
                       <th>Mobile</th>
                       <th>Address</th>
                       <th>Bookings</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -62,6 +77,26 @@
                       <td><?php echo $row['mobile'] ?></td>
                       <td><?php echo $row['address'] ?></td>
                       <td><?php echo $total_booking ?></td>
+                      <td>
+                        <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $user_id_client ?>">Delete</a>
+                        <div class="modal fade" id="deletePostModal<?php echo $user_id_client ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Delete Client?</h5>
+                                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">×</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">Are you sure you want to delete this client?</div>
+                              <div class="modal-footer">
+                                <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                <button class="btn btn-danger" type="button" data-dismiss="modal" onclick="deleteClient(<?php echo $user_id_client ?>)">Yes</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
                     </tr>
                     <?php } ?>
                   </tbody>
@@ -84,6 +119,27 @@
   <script src="../../vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="../../js/demo/datatables-demo.js"></script>
+  <script>
+    function deleteClient(userId) {
+      $.ajax({
+        url: "clients.php",
+        type: "post",
+        data: {
+          userId,
+          action: 'deleteclient',
+        },
+        success: function(data) {
+          alert(data.message);
+          if (data.success) {
+            window.location.reload();
+          }
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+    }
+  </script>
 </body>
 
 </html>

@@ -28,6 +28,18 @@
       }
       die;
     }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'deletesupplier') {
+      if (isset($_POST['userId'])) {
+        $user_id = $_POST['userId'];
+        $sql = "delete from user where user_id=$user_id";
+        $conn->query($sql);
+        json_response([
+          'success' => true,
+          'message' => 'Successfully deleted.'
+        ]);
+      }
+    }
   }
 ?>
 
@@ -68,6 +80,7 @@
                       <th>Address</th>
                       <th>Status</th>
                       <th>Date Created</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -189,6 +202,26 @@
                         <?php } else echo '<span class="badge '.$badge.'">'.$row['status'].'</span>' ?>
                         </td>
                         <td><?php echo $row['created'] ?></td>
+                        <td>
+                          <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $user_id ?>">Delete</a>
+                          <div class="modal fade" id="deletePostModal<?php echo $user_id ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="exampleModalLabel">Delete Supplier?</h5>
+                                  <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                  </button>
+                                </div>
+                                <div class="modal-body">Are you sure you want to delete this supplier?</div>
+                                <div class="modal-footer">
+                                  <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                  <button class="btn btn-danger" type="button" data-dismiss="modal" onclick="deleteSupplier(<?php echo $user_id ?>)">Yes</a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                     <?php } ?>
                   </tbody>
@@ -246,6 +279,26 @@
             window.location.reload();
           } else {
             alert('Something went wrong.');  
+          }
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+    }
+
+    function deleteSupplier(userId) {
+      $.ajax({
+        url: "suppliers.php",
+        type: "post",
+        data: {
+          userId,
+          action: 'deletesupplier',
+        },
+        success: function(data) {
+          alert(data.message);
+          if (data.success) {
+            window.location.reload();
           }
         },
         error: function(error) {
