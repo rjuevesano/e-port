@@ -135,6 +135,9 @@
                                         <i class="fa fa-link fa-lg"></i>
                                       </a>
                                     </div>
+                                    <div>
+                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
+                                    </div>
                                     <div class="d-flex justify-content-between text-center mt-5 mb-2">
                                       <div>
                                         <p class="mb-2 h5"><?php echo $booking_counter ?></p>
@@ -189,6 +192,9 @@
                                       <a href="#" target="_blank" class="btn btn-outline-primary btn-floating">
                                         <i class="fa fa-link fa-lg"></i>
                                       </a>
+                                    </div>
+                                    <div>
+                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
                                     </div>
                                 </div>
                                 <?php if ($row['status'] !== 'APPROVED') { ?>

@@ -146,7 +146,15 @@
               $sql_user = "select * from user where user_id=$user_id";
               $result_user = $conn->query($sql_user);
               $row_user = $result_user->fetch_assoc();
-              $avatar = $row_user['avatar'] ? "../supplier/uploads/".$row_user['avatar'] : '../../img/undraw_profile.svg';
+              
+              $avatar = '../../img/undraw_profile.svg';
+              if ($row_user['avatar']) {
+                if ($row_user['type'] === 'SUPPLIER') {
+                  $avatar = "../supplier/uploads/".$row_user['avatar'];
+                } else {
+                  $avatar = "uploads/".$row_user['avatar'];
+                }
+              }
 
               $current_user_id = $_SESSION['user_id'];
               $sql_like = "select count(*) as total from likes where user_id=$current_user_id and post_id=$post_id";
@@ -183,8 +191,13 @@
                   $result_image = $conn->query($sql_image);
 
                   while ($row_image = $result_image->fetch_assoc()) {
+                    if ($row_user['type'] === 'SUPPLIER') {
+                      $path = "../supplier/uploads/";
+                    } else {
+                      $path = "uploads/";
+                    }
                 ?>
-                  <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo "../supplier/uploads/".$row_image['path'] ?>" style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')"></a>
+                  <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $path.$row_image['path'] ?>" style="background-image: url('<?php echo $path.$row_image['path'] ?>')"></a>
                 <?php
                     }
                   }
@@ -216,7 +229,14 @@
               </div>
               <?php
                 while ($row_comment = $result_comments->fetch_assoc()) {
-                  $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "../supplier/uploads/".$row_comment['avatar'] : "uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
+                  $avatar = '../../img/undraw_profile.svg';
+                  if ($row_comment['avatar']) {
+                    if ($row_comment['type'] == 'SUPPLIER') {
+                      $avatar = "../supplier/uploads/".$row_comment['avatar'];
+                    } else {
+                      $avatar = "uploads/".$row_comment['avatar'];
+                    }
+                  }
               ?>
               <div class="d-flex flex-start">
                 <img class="rounded-circle shadow-1-strong mr-3" src="<?php echo $avatar ?>" alt="avatar" width="40" height="40" />
@@ -249,6 +269,7 @@
   <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="../../vendor/lightbox/fslightbox.js"></script>
   <script src="../../js/sb-admin-2.min.js"></script>
+  <script src="../../js/client.js"></script>
   <script>
     function togglePostLike(postId, like) {
       $.ajax({

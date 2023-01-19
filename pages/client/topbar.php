@@ -42,6 +42,70 @@
     border-radius: 50%;
   }
 </style>
+<style>
+  .upload__inputfile {
+    width: .1px;
+    height: .1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+  .upload__btn {
+    display: inline-block;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    min-width: 116px;
+    padding: 5px;
+    transition: all .3s ease;
+    cursor: pointer;
+    border: 2px solid;
+    background-color: #4045ba;
+    border-color: #4045ba;
+    border-radius: 10px;
+    line-height: 26px;
+    font-size: 14px;
+  }
+  .upload__btn:hover {
+    background-color: unset;
+    color: #4045ba;
+    transition: all .3s ease;
+  }
+  .upload__btn-box {
+    margin-bottom: 10px;
+  }
+  .upload__img-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+  }
+  .upload__img-box {
+    width: 162px;
+    padding: 0 10px;
+    margin-bottom: 12px;
+  }
+  .upload__img-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: center;
+    line-height: 24px;
+    z-index: 1;
+    cursor: pointer;color: white;
+  }
+  .img-bg {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+    padding-bottom: 100%;
+  }
+</style>
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow" style="position: fixed; width: 100%; z-index: 2;">
   <a class="sidebar-brand d-flex align-items-center justify-content-center text-decoration-none" href="index.php">
     <div class="sidebar-brand-icon rotate-n-15">
@@ -49,8 +113,8 @@
     </div>
     <div class="sidebar-brand-text mx-3">E-Port</div>
   </a>
-  <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-    <div class="input-group autocomplete">
+  <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" style="display: flex!important;">
+    <div class="input-group autocomplete" style="width: 280px;">
       <input type="text" id="searchInput" class="form-control bg-light border-0 small" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
       <div class="input-group-append">
         <button class="btn btn-primary" type="button" id="btn-search">
@@ -58,6 +122,7 @@
         </button>
       </div>
     </div>
+    <button class="btn btn-info ml-2" type="button" data-toggle="modal" data-target="#addPostModal">Add Post</button>
   </form>
   <ul class="navbar-nav ml-auto">
     <li class="nav-item dropdown no-arrow d-sm-none">
@@ -109,6 +174,41 @@
         <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
         <a class="btn btn-primary" href="../../logout.php">Logout</a>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addPostModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Post</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <form onsubmit="return addPost()">
+        <div class="modal-body">
+          <div class="form-outline mb-4">
+            <label class="form-label" for="form3Example3">Caption</label>
+            <input type="text" name="caption" required class="form-control" />
+          </div>
+          <div class="form-outline mb-4">
+            <div class="upload__box">
+              <div class="upload__btn-box">
+                <label class="btn btn-primary">
+                  Upload photos
+                  <input type="file" multiple accept="image/png, image/gif, image/jpeg" class="upload__inputfile">
+                </label>
+              </div>
+              <div class="upload__img-wrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Submit</a>
+        </div>
+      </form>
     </div>
   </div>
 </div>

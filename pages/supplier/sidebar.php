@@ -6,8 +6,8 @@
     <div class="sidebar-brand-text mx-3">E-Port <sup><span class="badge badge-light">Supplier</span></sup></div>
   </a>
   <hr class="sidebar-divider my-0">
-  <li class="nav-item <?php echo str_contains($_SERVER['REQUEST_URI'], 'index.php') ? 'active': '' ?>">
-    <a class="nav-link" href="index.php">
+  <li class="nav-item <?php echo str_contains($_SERVER['REQUEST_URI'], 'dashboard.php') ? 'active': '' ?>">
+    <a class="nav-link" href="dashboard.php">
       <i class="fas fa-fw fa-tachometer-alt"></i>
       <span>Dashboard</span></a>
   </li>

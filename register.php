@@ -27,6 +27,15 @@
       $address = validate($_POST['address']) or '';
       $facebook_url = validate($_POST['facebook_url']) or '';
       $portfolio_url = validate($_POST['portfolio_url']) or '';
+      $filename = '';
+
+      if (isset($_FILES['userfile'])) {
+        $tmpFilePath = $_FILES['userfile']['tmp_name'];
+        $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
+        $location = "pages/supplier/uploads/".$filename;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+
       $username = validate($_POST['username']);
       $password = $_POST['password'];
       $confirmpassword = $_POST['confirmpassword'];
@@ -39,7 +48,7 @@
 
       $password = md5($_POST['password']);
       $status = $type == 'CLIENT' ? 'ACTIVE' : 'PENDING';
-      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url')";
+      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url, file) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url', '$filename')";
       $conn->query($sql);
       $_SESSION['user_id'] = $conn->insert_id;
       $_SESSION['type'] = $type;
@@ -65,6 +74,16 @@
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin-2.min.css" rel="stylesheet">
+  <style>
+    .upload__inputfile {
+      width: .1px;
+      height: .1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+  </style>
 </head>
 
 <body class="bg-gradient-primary">
@@ -83,7 +102,7 @@
                   <?php echo $_GET['error'] ?>
                 </div>
               <?php } ?>
-              <form class="user" method="post" action="register.php">
+              <form class="user" method="post" action="register.php" enctype="multipart/form-data">
                 <div class="form-group">
                   <select class="form-control" name="type" required onchange="accountType()">
                     <option value="CLIENT">Client</option>
@@ -112,6 +131,12 @@
                   </div>
                   <div class="col-sm-6">
                     <input type="text" class="form-control" placeholder="Portfolio" name="portfolio_url">
+                  </div>
+                </div>
+                <div class="form-group row" id="more2" style="display:none">
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <label>UPLOAD CURRICULUM VITAE</label>
+                    <input type="file" name="userfile" accept=".pdf">
                   </div>
                 </div>
                 <hr class="my-4">
@@ -150,8 +175,10 @@
       var type =document.getElementsByName('type')[0].value;
       if (type == 'CLIENT') {
         document.getElementById('more').style.display = 'none';
+        document.getElementById('more2').style.display = 'none';
       } else {
         document.getElementById('more').style.display = 'flex';
+        document.getElementById('more2').style.display = 'flex';
       }
     }
   </script>

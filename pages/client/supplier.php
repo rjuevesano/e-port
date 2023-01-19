@@ -277,11 +277,15 @@
                         </button>
                         <?php } ?>
                       </div>
-                      <div class="ml-3" style="margin-top: 110px;">
+                      <div class="ml-3" style="margin-top: 70px;">
                         <h5><?php echo $row['firstname'].' '.$row['lastname'] ?></h5>
                         <span class="text-gray-500"><i class="fa fa-phone"></i> <?php echo $row['mobile'] ?></span>
                         <br/>
                         <span class="text-gray-500"><i class="fa fa-map"></i> <?php echo $row['address'] ?></span>
+                        <br/>
+                        <?php if ($row['file']) { ?>
+                        <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary mt-2" style="z-index: 1;">GENERATE CURRICULUM VITAE</a>
+                        <?php } ?>
                       </div>
                     </div>
                     <div class="p-4 text-black" style="background-color: #f8f9fa;">
@@ -578,6 +582,7 @@
   <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="../../vendor/lightbox/fslightbox.js"></script>
   <script src="../../js/sb-admin-2.min.js"></script>
+  <script src="../../js/client.js"></script>
   <script>
     function addAppointment() {
       var firstname = document.getElementsByName("firstname")[0].value;
