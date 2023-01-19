@@ -9,6 +9,35 @@
 
   $sql = "select * from post";
   $result = $conn->query($sql);
+
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] == 'deletepost') {
+      if (isset($_POST['postId'])) {
+        $post_id = $_POST['postId'];
+        $sql = "delete from post where post_id=$post_id";
+        $conn->query($sql);
+
+        if (isset($_POST['imageIds'])) {
+          $image_ids = $_POST['imageIds'];
+
+          for ($i=0; $i<count($image_ids); $i++) {
+            $image_id = $image_ids[$i];
+            $result_image = $conn->query("select * from image where image_id=$image_id");
+            $row_image = $result_image->fetch_assoc();
+            try {
+              $location = "../supplier/uploads/".$row_image['path'];
+              unlink($location);
+            } catch (Exception $e) {
+              $location = "../client/uploads/".$row_image['path'];
+              unlink($location);
+            }
+            
+            $conn->query("delete from image where image_id=$image_id");
+          }
+        }
+      }
+    }
+  }
 ?>
 
 <!DOCTYPE html>
@@ -112,6 +141,7 @@
                       <th>Image</th>
                       <th>Status</th>
                       <th>Date Created</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -169,9 +199,15 @@
                                         $result_image = $conn->query($sql_image);
 
                                         while ($row_image = $result_image->fetch_assoc()) {
+                                          $image = '';
+                                          if ($row_user['type'] == 'SUPPLIER') {
+                                            $image = '../supplier/uploads/'.$row_image['path'];
+                                          } else {
+                                            $image = '../client/uploads/'.$row_image['path'];
+                                          }
                                       ?>
                                         <div class='upload__img-box' style="width: 148px;">
-                                          <div style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')" class='img-bg'></div>
+                                          <div style="background-image: url('<?php echo $image ?>')" class='img-bg'></div>
                                         </div>
                                       <?php
                                           }
@@ -224,6 +260,26 @@
                         <td><?php echo $image_ids ? count($image_ids) : '0' ?></td>
                         <td><span class="badge <?php echo $badge ?>"><?php echo $row['status'] ?></span></td>
                         <td><?php echo $row['created'] ?></td>
+                        <td>
+                          <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $post_id ?>">Delete</a>
+                          <div class="modal fade" id="deletePostModal<?php echo $post_id ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="exampleModalLabel">Delete Post?</h5>
+                                  <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                  </button>
+                                </div>
+                                <div class="modal-body">Are you sure you want to delete this post?</div>
+                                <div class="modal-footer">
+                                  <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                  <button class="btn btn-danger" type="button" data-dismiss="modal" onclick="deletePost(<?php echo $post_id ?>, <?php echo $row['image_ids'] ?>)">Yes</a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                     <?php } ?>
                   </tbody>
@@ -246,6 +302,25 @@
   <script src="../../vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="../../js/demo/datatables-demo.js"></script>
+  <script>
+    function deletePost(postId, imageIds) {
+      $.ajax({
+        url: "posts.php",
+        type: "post",
+        data: {
+          postId,
+          imageIds,
+          action: 'deletepost',
+        },
+        success: function(data) {
+          window.location.replace("posts.php");
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+    }
+  </script>
 </body>
 
 </html>

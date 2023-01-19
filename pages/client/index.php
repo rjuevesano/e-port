@@ -168,7 +168,7 @@
           ?>
           <div class="card shadow m-3">
             <div class="card-header py-3 d-flex flex-row justify-content-between align-items-center">
-              <a href="supplier.php?id=<?php echo $row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
+              <a href="<?php echo $row_user['type'] === 'SUPPLIER' ? 'supplier.php?id='.$row_user['user_id'] : 'client.php?id='.$row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
                 <div class="mr-2">
                   <img class="avatar" src="<?php echo $avatar ?>" alt=""/>
                 </div>

@@ -168,7 +168,7 @@
           ?>
           <div class="card shadow m-3">
             <div class="card-header py-3 d-flex flex-row justify-content-between align-items-center">
-              <a href="#!" class="d-flex flex-row align-items-center text-decoration-none">
+              <a href="client.php?id=<?php echo $user_id ?>" class="d-flex flex-row align-items-center text-decoration-none">
                 <div class="mr-2">
                   <img class="avatar" src="<?php echo $avatar ?>" alt=""/>
                 </div>
