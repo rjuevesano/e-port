@@ -132,7 +132,7 @@
   <div id="wrapper">
     <div id="content-wrapper" class="d-flex flex-column">
       <div id="content" style="min-height: 100vh;">
-        <?php include 'topbar.php' ?>
+        <?php include 'topbar-index.php' ?>
         <div class="container-fluid" style="padding-top: 70px;">
           <?php
             if (!$result->num_rows) {
