@@ -66,6 +66,30 @@
       ]);
     }
 
+    if (isset($_POST['action']) && $_POST['action'] == 'addmessage') {
+      $message = $_POST['message'];
+
+      $sql_check = "select count(*) as total from message where user_id_client=$user_id and user_id_supplier=$current_user_id and is_main=true";
+      $result_check = $conn->query($sql_check);
+      $total = $result_check->fetch_assoc()['total'];
+
+      if ($total) {
+        $sql_update = "update message set updated=now() where user_id_client=$user_id and user_id_supplier=$current_user_id and is_main=true";
+        $conn->query($sql_update);
+
+        $sql = "insert into message (user_id_client, user_id_supplier, is_main, sender, text) values('$user_id', '$current_user_id', false, 'SUPPLIER', '$message')";
+        $conn->query($sql);
+      } else {
+        $sql = "insert into message (user_id_client, user_id_supplier, is_main, sender, text) values('$user_id', '$current_user_id', true, 'SUPPLIER', '$message')";
+        $conn->query($sql);
+      }
+      
+      json_response([
+        'success' => true,
+        'message' => 'Message successfully sent!'
+      ]);
+    }
+
     if (isset($_POST['action']) && $_POST['action'] == 'likepost') {
       $post_id = $_POST['postId'];
       $like = $_POST['like'];
@@ -265,19 +289,21 @@
               <div class="row d-flex justify-content-center align-items-center h-100">
                 <div class="col">
                   <div class="card">
-                    <div class="rounded-top text-white d-flex flex-row" style="background-color: #000; height:200px;">
-                      <div class="ml-4 mt-5 d-flex flex-column" style="width: 150px; height: 280px;">
-                        <img src=<?php echo $row['avatar'] ? ($row['type'] == 'SUPPLIER' ? "uploads/".$row['avatar'] : "../client/uploads/".$row['avatar']) : '../../img/undraw_profile.svg' ?> alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2" style="width: 150px; height: 150px; z-index: 1">
+                    <div class="rounded-top text-white d-flex flex-row justify-content-between" style="background-color: #000; height:200px;">
+                      <div class="d-flex flex-row">
+                        <div class="ml-4 mt-5 d-flex flex-column" style="width: 150px; height: 280px;">
+                          <img src=<?php echo $row['avatar'] ? ($row['type'] == 'SUPPLIER' ? "uploads/".$row['avatar'] : "../client/uploads/".$row['avatar']) : '../../img/undraw_profile.svg' ?> alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2" style="width: 150px; height: 150px; z-index: 1">
+                        </div>
+                        <div class="ml-3" style="margin-top: 110px;">
+                          <h5><?php echo $row['firstname'].' '.$row['lastname'] ?></h5>
+                          <span class="text-gray-500"><i class="fa fa-phone"></i> <?php echo $row['mobile'] ?></span>
+                          <br/>
+                          <span class="text-gray-500"><i class="fa fa-map"></i> <?php echo $row['address'] ?></span>
+                          <br/>
+                        </div>
                       </div>
-                      <div class="ml-3" style="margin-top: 110px;">
-                        <h5><?php echo $row['firstname'].' '.$row['lastname'] ?></h5>
-                        <span class="text-gray-500"><i class="fa fa-phone"></i> <?php echo $row['mobile'] ?></span>
-                        <br/>
-                        <span class="text-gray-500"><i class="fa fa-map"></i> <?php echo $row['address'] ?></span>
-                        <br/>
-                        <?php if ($row['file']) { ?>
-                        <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary mt-2" style="z-index: 1;">GENERATE CURRICULUM VITAE</a>
-                        <?php } ?>
+                      <div class="d-flex flex-column justify-content-end mb-3 mr-3">
+                        <button type="button" class="btn btn-success mt-2" style="z-index: 1;" data-toggle="modal" data-target="#sendMessageModal">Send a message</button>
                       </div>
                     </div>
                     <div class="card-body p-4 text-black">
@@ -297,6 +323,10 @@
                           $sql_like = "select count(*) as total from likes where user_id=$current_user_id and post_id=$post_id";
                           $result_like = $conn->query($sql_like);
                           $liked = $result_like->fetch_assoc()['total'];
+
+                          $sql_likes = "select count(*) as total from likes where post_id=$post_id";
+                          $result_likes = $conn->query($sql_likes);
+                          $likeds = $result_likes->fetch_assoc()['total'];
 
                           $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
                           $result_comments = $conn->query($sql_comments);
@@ -356,7 +386,7 @@
                           <div class="small d-flex justify-content-start">
                             <a href="#!" class="d-flex align-items-center mr-3 text-decoration-none text-gray-800" onclick="togglePostLike(<?php echo $post_id ?>, <?php echo $liked ?>)">
                               <i class="<?php echo $liked ? 'fa':'far' ?> fa-thumbs-up mr-1"></i>
-                              <p class="mb-0">Like (<?php echo $liked ?>)</p>
+                              <p class="mb-0">Like (<?php echo $likeds ?>)</p>
                             </a>
                             <a href="#!" class="d-flex align-items-center text-decoration-none text-gray-800">
                               <i class="far fa-comment-dots mr-1"></i>
@@ -564,6 +594,29 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="sendMessageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Send a message</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <form onsubmit="return addMessage()">
+          <div class="modal-body">
+            <div class="form-outline mb-4">
+              <textarea rows="4" name="send-message-text" required class="form-control"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top:none">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit">Submit</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <script src="../../vendor/jquery/jquery.min.js"></script>
   <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
@@ -630,6 +683,29 @@
           alert(data.message);
           if (data.success) {
             window.location.reload();
+          }
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+      return false;
+    }
+
+    function addMessage() {
+      var message = document.getElementsByName("send-message-text")[0].value;
+
+      $.ajax({
+        url: "client.php?id=<?php echo $user_id ?>",
+        type: "post",
+        data: {
+          action: 'addmessage',
+          message
+        },
+        success: function(data) {
+          alert(data.message);
+          if (data.success) {
+            window.location.href = "messages.php?client_id=<?php echo $user_id ?>";
           }
         },
         error: function(error) {

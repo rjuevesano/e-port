@@ -298,6 +298,10 @@
                           $result_like = $conn->query($sql_like);
                           $liked = $result_like->fetch_assoc()['total'];
 
+                          $sql_likes = "select count(*) as total from likes where post_id=$post_id";
+                          $result_likes = $conn->query($sql_likes);
+                          $likeds = $result_likes->fetch_assoc()['total'];
+
                           $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
                           $result_comments = $conn->query($sql_comments);
 
@@ -356,7 +360,7 @@
                           <div class="small d-flex justify-content-start">
                             <a href="#!" class="d-flex align-items-center mr-3 text-decoration-none text-gray-800" onclick="togglePostLike(<?php echo $post_id ?>, <?php echo $liked ?>)">
                               <i class="<?php echo $liked ? 'fa':'far' ?> fa-thumbs-up mr-1"></i>
-                              <p class="mb-0">Like (<?php echo $liked ?>)</p>
+                              <p class="mb-0">Like (<?php echo $likeds ?>)</p>
                             </a>
                             <a href="#!" class="d-flex align-items-center text-decoration-none text-gray-800">
                               <i class="far fa-comment-dots mr-1"></i>

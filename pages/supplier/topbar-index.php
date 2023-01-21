@@ -42,6 +42,10 @@
         <img class="img-profile rounded-circle" style="border: 1px solid" src="<?php echo $_SESSION['user_avatar'] ? "uploads/".$_SESSION['user_avatar'] : '../../img/undraw_profile.svg' ?>">
       </a>
       <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+        <a class="dropdown-item" href="messages.php">
+          <i class="fa fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
+          Messages
+        </a>
         <a class="dropdown-item" href="profile.php">
           <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
           Profile
