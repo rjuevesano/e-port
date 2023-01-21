@@ -335,7 +335,7 @@
                       }
                   ?>
                   <div class="chat_list <?php echo $user_id_client == $client_id ? 'active_chat': ''  ?>">
-                    <a href="messages.php?client_id=<?php echo $user_id_client  ?>">
+                    <a href="messages.php?client_id=<?php echo $user_id_client ?>" style="text-decoration: none;">
                       <div class="chat_people">
                         <div class="chat_img">
                           <img src="<?php echo $avatar ?>" alt="" style="width: 40px; height: 40px; border-radius: 100%;"/>
