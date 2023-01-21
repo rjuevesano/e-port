@@ -31,7 +31,7 @@
         unlink($location);
       }
 
-      if (isset($_FILES['userfile'])) {
+      if (!empty($_FILES['userfile'])) {
         $tmpFilePath = $_FILES['userfile']['tmp_name'];
         $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
         $location = "uploads/".$filename;
