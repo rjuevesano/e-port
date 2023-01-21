@@ -7,6 +7,11 @@
     die;
   }
 
+  $supplier_id = '';
+  if (isset($_GET['supplier_id'])) {
+    $supplier_id = $_GET['supplier_id'];
+  }
+
   $current_user_id = $_SESSION['user_id'];
   $sql = "select * from message where user_id_client=$current_user_id and is_main=1 order by updated desc";
   $result = $conn->query($sql);
@@ -329,7 +334,7 @@
                         $sender = $row_user_supplier['firstname']." ".$row_user_supplier['lastname'];
                       }
                   ?>
-                  <div class="chat_list <?php echo $user_id_supplier == $_GET['supplier_id'] ? 'active_chat': ''  ?>">
+                  <div class="chat_list <?php echo $user_id_supplier == $supplier_id ? 'active_chat': ''  ?>">
                     <a href="messages.php?supplier_id=<?php echo $user_id_supplier  ?>">
                       <div class="chat_people">
                         <div class="chat_img">
@@ -351,12 +356,11 @@
               </div>
               <div class="mesgs">
                 <?php
-                  if (isset($_GET['supplier_id'])) {
+                  if ($supplier_id) {
                 ?>
                 <div class="msg_history">
                   <?php
-                    $current_supplier_id = $_GET['supplier_id'];
-                    $sql_messages = "select * from message where user_id_client=$current_user_id and user_id_supplier=$current_supplier_id order by created asc";
+                    $sql_messages = "select * from message where user_id_client=$current_user_id and user_id_supplier=$supplier_id order by created asc";
                     $result_messages = $conn->query($sql_messages);
 
                     while($row_messages=$result_messages->fetch_assoc()) {
@@ -430,12 +434,12 @@
     function addMessage() {
       var message = document.getElementById("text-message").value;
       $.ajax({
-        url: "messages.php?supplier_id=<?php echo $_GET['supplier_id'] ?>",
+        url: "messages.php?supplier_id=<?php echo $supplier_id ?>",
         type: "post",
         data: {
           action: 'addmessage',
           message,
-          supplier_id: '<?php echo $_GET['supplier_id'] ?>'
+          supplier_id: '<?php echo $supplier_id ?>'
         },
         success: function(data) {
           window.location.reload();
@@ -448,7 +452,7 @@
 
     function deleteMessage(id1, id2) {
       $.ajax({
-        url: "messages.php?supplier_id=<?php echo $_GET['supplier_id'] ?>",
+        url: "messages.php?supplier_id=<?php echo $supplier_id ?>",
         type: "post",
         data: {
           action: 'deletemessage',

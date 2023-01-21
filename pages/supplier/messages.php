@@ -7,6 +7,11 @@
     die;
   }
 
+  $client_id = '';
+  if (isset($_GET['client_id'])) {
+    $client_id = $_GET['client_id'];
+  }
+
   $current_user_id = $_SESSION['user_id'];
   $sql = "select * from message where user_id_supplier=$current_user_id and is_main=1 order by updated desc";
   $result = $conn->query($sql);
@@ -329,7 +334,7 @@
                         $sender = $row_user_supplier['firstname']." ".$row_user_supplier['lastname'];
                       }
                   ?>
-                  <div class="chat_list <?php echo $user_id_client == $_GET['client_id'] ? 'active_chat': ''  ?>">
+                  <div class="chat_list <?php echo $user_id_client == $client_id ? 'active_chat': ''  ?>">
                     <a href="messages.php?client_id=<?php echo $user_id_client  ?>">
                       <div class="chat_people">
                         <div class="chat_img">
@@ -351,12 +356,11 @@
               </div>
               <div class="mesgs">
                 <?php
-                  if (isset($_GET['client_id'])) {
+                  if ($client_id) {
                 ?>
                 <div class="msg_history">
                   <?php
-                    $current_client_id = $_GET['client_id'];
-                    $sql_messages = "select * from message where user_id_client=$current_client_id and user_id_supplier=$current_user_id order by created asc";
+                    $sql_messages = "select * from message where user_id_client=$client_id and user_id_supplier=$current_user_id order by created asc";
                     $result_messages = $conn->query($sql_messages);
 
                     while($row_messages=$result_messages->fetch_assoc()) {
@@ -431,12 +435,12 @@
     function addMessage() {
       var message = document.getElementById("text-message").value;
       $.ajax({
-        url: "messages.php?client_id=<?php echo $_GET['client_id'] ?>",
+        url: "messages.php?client_id=<?php echo $client_id ?>",
         type: "post",
         data: {
           action: 'addmessage',
           message,
-          client_id: '<?php echo $_GET['client_id'] ?>'
+          client_id: '<?php echo $client_id ?>'
         },
         success: function(data) {
           window.location.reload();
@@ -449,7 +453,7 @@
 
     function deleteMessage(id1, id2) {
       $.ajax({
-        url: "messages.php?client_id=<?php echo $_GET['client_id'] ?>",
+        url: "messages.php?client_id=<?php echo $client_id ?>",
         type: "post",
         data: {
           action: 'deletemessage',
