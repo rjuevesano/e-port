@@ -1,11 +1,8 @@
 <?php
   session_start();
-  require_once "../../config.php";
+  date_default_timezone_set('Asia/Manila');
 
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql = "select * from post where status='PUBLISHED' order by created desc";
   $result = $conn->query($sql);
@@ -137,40 +134,47 @@
           <?php
             if (!$result->num_rows) {
               echo "<div class='d-flex justify-content-center mt-5'>No post yet.</div>";
-            }
+            } else {
+              while ($row = $result->fetch_assoc()) {
+                $post_id = $row['post_id'];
 
-            while ($row = $result->fetch_assoc()) {
-              $post_id = $row['post_id'];
+                $user_id = $row['user_id'];
+                $sql_user = "select * from user where user_id=$user_id";
+                $result_user = $conn->query($sql_user);
+                $row_user = $result_user->fetch_assoc();
+                
+                $avatar = '../../img/undraw_profile.svg';
+                if ($row_user['avatar']) {
+                  if ($row_user['type'] === 'SUPPLIER') {
+                    $avatar = "../supplier/uploads/".$row_user['avatar'];
+                  } else {
+                    $avatar = "uploads/".$row_user['avatar'];
+                  }
+                }
 
-              $user_id = $row['user_id'];
-              $sql_user = "select * from user where user_id=$user_id";
-              $result_user = $conn->query($sql_user);
-              $row_user = $result_user->fetch_assoc();
-              $avatar = $row_user['avatar'] ? "../supplier/uploads/".$row_user['avatar'] : '../../img/undraw_profile.svg';
+                $current_user_id = $_SESSION['user_id'];
+                $sql_like = "select count(*) as total from likes where user_id=$current_user_id and post_id=$post_id";
+                $result_like = $conn->query($sql_like);
+                $liked = $result_like->num_rows ? $result_like->fetch_assoc()['total'] : 0;
 
-              $current_user_id = $_SESSION['user_id'];
-              $sql_like = "select count(*) as total from likes where user_id=$current_user_id and post_id=$post_id";
-              $result_like = $conn->query($sql_like);
-              $liked = $result_like->fetch_assoc()['total'];
+                $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
+                $result_comments = $conn->query($sql_comments);
 
-              $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
-              $result_comments = $conn->query($sql_comments);
-
-              $image_ids = json_decode($row['image_ids']);
+                $image_ids = json_decode($row['image_ids']);
           ?>
           <div class="card shadow m-3">
             <div class="card-header py-3 d-flex flex-row justify-content-between align-items-center">
-              <a href="supplier.php?id=<?php echo $row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
+              <a href="<?php echo $row_user['type'] === 'SUPPLIER' ? 'supplier.php?id='.$row_user['user_id'] : 'client.php?id='.$row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
                 <div class="mr-2">
                   <img class="avatar" src="<?php echo $avatar ?>" alt=""/>
                 </div>
                 <div>
-                  <h6 class="m-0 font-weight-bold text-gray-900"><?php echo $row_user['firstname']." ".$row_user['lastname'] ?></h6>
+                  <h6 class="m-0 font-weight-bold text-gray-900"><?php echo $row_user['firstname']." ".$row_user['lastname']."  (".$row_user['type'].")" ?></h6>
                   <div class="small mb-1">@<?php echo $row_user['username'] ?></div>
                 </div>
               </a>
               <div>
-                <?php echo date_format(date_create($row['created']), 'D, M j Y h:ia') ?>
+                <?php echo getDateTimeDifferenceString($row['created']) ?>
               </div>
             </div>
             <div class="card-body">
@@ -182,10 +186,17 @@
                   $sql_image = "select * from image where image_id=$image_ids[$i]";
                   $result_image = $conn->query($sql_image);
 
-                  while ($row_image = $result_image->fetch_assoc()) {
+                  if ($result_image->num_rows) {
+                    while ($row_image = $result_image->fetch_assoc()) {
+                      if ($row_user['type'] === 'SUPPLIER') {
+                        $path = "../supplier/uploads/";
+                      } else {
+                        $path = "uploads/";
+                      }
                 ?>
-                  <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo "../supplier/uploads/".$row_image['path'] ?>" style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')"></a>
+                  <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $path.$row_image['path'] ?>" style="background-image: url('<?php echo $path.$row_image['path'] ?>')"></a>
                 <?php
+                      }
                     }
                   }
                 ?>
@@ -215,15 +226,23 @@
                 <button type="button" class="btn btn-primary btn-sm" onclick="addComment(<?php echo $post_id ?>)">Post comment</button>
               </div>
               <?php
+                if ($result_comments->num_rows) {
                 while ($row_comment = $result_comments->fetch_assoc()) {
-                  $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "../supplier/uploads/".$row_comment['avatar'] : "uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
+                  $avatar = '../../img/undraw_profile.svg';
+                  if ($row_comment['avatar']) {
+                    if ($row_comment['type'] == 'SUPPLIER') {
+                      $avatar = "../supplier/uploads/".$row_comment['avatar'];
+                    } else {
+                      $avatar = "uploads/".$row_comment['avatar'];
+                    }
+                  }
               ?>
               <div class="d-flex flex-start">
                 <img class="rounded-circle shadow-1-strong mr-3" src="<?php echo $avatar ?>" alt="avatar" width="40" height="40" />
                 <div>
                   <h6 class="fw-bold mb-1"><?php echo $row_comment['firstname']." ".$row_comment['lastname'] ?></h6>
                   <div class="d-flex align-items-center mb-3">
-                    <p class="mb-0" style="font-size: 12px;"><?php echo date_format(date_create($row_comment['created']), 'D, M j Y h:ia') ?></p>
+                    <p class="mb-0" style="font-size: 12px;"><?php echo getDateTimeDifferenceString($row_comment['created']) ?></p>
                   </div>
                   <p class="mb-0"><?php echo $row_comment['message'] ?></p>
                   <?php if ($row_comment['user_id'] == $_SESSION['user_id']) { ?>
@@ -232,10 +251,16 @@
                 </div>
               </div>
               <hr class="my-3" />
-              <?php } ?>
+              <?php
+                  }
+                }
+              ?>
             </div>
           </div>
-          <?php } ?>
+          <?php
+              }
+            }
+          ?>
         </div>
       </div>
       <?php include 'footer.php' ?>
@@ -249,6 +274,7 @@
   <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="../../vendor/lightbox/fslightbox.js"></script>
   <script src="../../js/sb-admin-2.min.js"></script>
+  <script src="../../js/client.js"></script>
   <script>
     function togglePostLike(postId, like) {
       $.ajax({

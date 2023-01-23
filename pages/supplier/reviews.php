@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from rating where user_id_supplier=$user_id";
@@ -116,6 +111,7 @@
                   </thead>
                   <tbody>
                     <?php
+                    if ($result->num_rows){
                     while ($row = $result->fetch_assoc()) {
                       $client_user_id = $row['user_id_client'];
                       $sql_user = "select * from user where user_id=$client_user_id";
@@ -134,9 +130,9 @@
                             <i class="fa fa-star <?php echo $row['rate'] >= 5 ? 'text-warning' : '' ?>"></i>
                           </div>
                         </td>
-                        <td><?php echo date_format(date_create($row_comment['created']), 'D, M j Y h:ia') ?></td>
+                        <td><?php echo date_format(date_create($row['created']), 'D, M j Y h:ia') ?></td>
                       </tr>
-                    <?php } ?>
+                    <?php }} ?>
                   </tbody>
                 </table>
               </div>

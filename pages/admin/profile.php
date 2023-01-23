@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from user where user_id=$user_id";

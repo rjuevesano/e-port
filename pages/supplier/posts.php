@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from post where user_id=$user_id";
@@ -13,7 +8,7 @@
 
   $sql_user = "select * from user where user_id=$user_id";
   $result_user = $conn->query($sql_user);
-  $user_status = $result_user->fetch_assoc()['status'];
+  $user_status = $result_user->num_rows ? $result_user->fetch_assoc()['status'] : '';
 
   if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action']) && $_POST['action'] == 'addpost') {
@@ -206,12 +201,13 @@
                   </thead>
                   <tbody>
                     <?php
+                    if ($result->num_rows){
                     while ($row = $result->fetch_assoc()) {
                       $post_id = $row['post_id'];
 
                       $sql_likes = "select count(*) as total from likes where post_id=$post_id";
                       $result_likes = $conn->query($sql_likes);
-                      $likes = $result_likes->fetch_assoc()['total'];
+                      $likes = $result_likes->num_rows ? $result_likes->fetch_assoc()['total'] : 0;
 
                       $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
                       $result_comments = $conn->query($sql_comments);
@@ -253,13 +249,14 @@
                                         $sql_image = "select * from image where image_id=$image_ids[$i]";
                                         $result_image = $conn->query($sql_image);
 
+                                        if ($result_image->num_rows) {
                                         while ($row_image = $result_image->fetch_assoc()) {
                                       ?>
                                         <div class='upload__img-box' style="width: 148px;">
                                           <div style="background-image: url('<?php echo "uploads/".$row_image['path'] ?>')" class='img-bg'></div>
                                         </div>
                                       <?php
-                                          }
+                                          }}
                                         }
                                       ?>
                                       </div>
@@ -293,6 +290,7 @@
                                       <button type="button" class="btn btn-primary btn-sm" onclick="addComment(<?php echo $post_id ?>)">Post comment</button>
                                     </div>
                                     <?php
+                                      if ($result_comments->num_rows){
                                       while ($row_comment = $result_comments->fetch_assoc()) {
                                         $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "uploads/".$row_comment['avatar'] : "../client/uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
                                     ?>
@@ -310,7 +308,7 @@
                                       </div>
                                     </div>
                                     <hr class="my-3" />
-                                    <?php } ?>
+                                    <?php }} ?>
                                   </div>
                                 </div>
                               </div>
@@ -343,7 +341,7 @@
                           </div>
                         </td>
                       </tr>
-                    <?php } ?>
+                    <?php }} ?>
                   </tbody>
                 </table>
               </div>
@@ -405,7 +403,7 @@
     jQuery(document).ready(function () {
       ImgUpload();
 
-      <?php if ($_GET['open']) { ?>
+      <?php if (isset($_GET['open']) && $_GET['open']) { ?>
       $('#postInfoModal<?php echo $_GET['open'] ?>').modal('show')
       <?php } ?>
     });

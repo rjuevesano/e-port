@@ -1,7 +1,14 @@
+ <style>
+ .bg-gradient-primary {
+    background-color: #6b6d7d;
+    background-image: linear-gradient(180deg,#3a3b45 10%,#6b6d7d 100%);
+    background-size: cover;
+}
+</style>
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
   <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
     <div class="sidebar-brand-icon rotate-n-15">
-      <i class="fas fa-laugh-wink"></i>
+      <i class="fa fa-folder-open"></i>
     </div>
     <div class="sidebar-brand-text mx-3">E-Port <sup><span class="badge badge-light">Admin</span></sup></div>
   </a>

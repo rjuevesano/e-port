@@ -63,3 +63,20 @@ Comment
 - message
 - created
 - updated
+
+Message
+- message_id (PK)
+- user_id_client
+- user_id_supplier
+- is_main (main conversation)
+- sender (SUPPLIER, CLIENT)
+- text
+- created
+- updated
+
+Notification
+- notification_id (PK)
+- message_id
+- is_read
+- created
+- updated

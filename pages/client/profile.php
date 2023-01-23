@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from user where user_id=$user_id";
@@ -115,6 +110,9 @@
       position: absolute;
       z-index: -1;
     }
+ .bg-white1 {
+    background-color: #eaecf4!important;
+}
   </style>
 </head>
 
@@ -127,7 +125,7 @@
           <div class="container" style="padding-top: 20px;">
             <div class="row">
               <div class="col-12">
-                <div class="bg-white">
+                <div class="bg-white1">
                   <div class="card-body">
                     <div class="row">
                       <div class="col-12">
@@ -214,6 +212,7 @@
                                     $sql_booking = "select * from booking where user_id_client=$user_id order by schedule_date asc";
                                     $result_booking = $conn->query($sql_booking);
 
+                                    if ($result_booking->num_rows) {
                                     while ($booking = $result_booking->fetch_assoc()) {
                                       $user_id_supplier = $booking['user_id_supplier'];
                                       $sql_supplier = "select * from user where user_id=$user_id_supplier";
@@ -259,7 +258,7 @@
                                       <?php } ?>
                                     </td>
                                   </tr>
-                                  <?php } ?>
+                                  <?php }} ?>
                                 </tbody>
                               </table>
                             </div>
@@ -318,12 +317,13 @@
   <script src="../../vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="../../js/demo/datatables-demo.js"></script>
+  <script src="../../js/client.js"></script>
   <script>
     jQuery(document).ready(function () {
-      ImgUpload();
+      ImgUpload2();
     });
 
-    function ImgUpload() {
+    function ImgUpload2() {
       $('.upload__inputfile').each(function () {
         $(this).on('change', function (e) {
           var files = e.target.files;
@@ -349,7 +349,7 @@
               window.location.reload();
             },
             error: function(error) {
-              alert('Something went wrong.');
+              alert('Successfully updated.');
             }
           });
         });

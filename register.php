@@ -27,6 +27,15 @@
       $address = validate($_POST['address']) or '';
       $facebook_url = validate($_POST['facebook_url']) or '';
       $portfolio_url = validate($_POST['portfolio_url']) or '';
+      $filename = '';
+
+      if (isset($_FILES['userfile'])) {
+        $tmpFilePath = $_FILES['userfile']['tmp_name'];
+        $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
+        $location = "pages/supplier/uploads/".$filename;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+
       $username = validate($_POST['username']);
       $password = $_POST['password'];
       $confirmpassword = $_POST['confirmpassword'];
@@ -39,10 +48,11 @@
 
       $password = md5($_POST['password']);
       $status = $type == 'CLIENT' ? 'ACTIVE' : 'PENDING';
-      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url')";
+      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url, file) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url', '$filename')";
       $conn->query($sql);
       $_SESSION['user_id'] = $conn->insert_id;
       $_SESSION['type'] = $type;
+      $_SESSION['user_avatar'] = "";
       header('Location: index.php');
     }
   }
@@ -64,14 +74,50 @@
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin-2.min.css" rel="stylesheet">
+ <style>
+    .upload__inputfile {
+      width: .1px;
+      height: .1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+    .bg-register-image1 {
+  background: url("reg.webp");
+  background-position: center;
+  background-size: cover;
+}
+.bg-gradient-primary1 {
+    background-color: #4e73df;
+     background: url("back.jpg");
+    background-size: cover;
+    }
+.card{
+  background-color: #121314;
+}
+.text-gray-900 {
+    color: #ffffff !important;
+  }
+  .btn-primary {
+    color: #fff;
+   background: linear-gradient(90deg, rgba(1,1,1,1) 23%, #8b6300 100%);
+    border-color: #fff;
+  }
+  .btn-primary:hover {
+    color: #fff;
+   background: linear-gradient(90deg, rgba(191,123,1,1) 23%, rgba(11,11,11,1) 100%);
+    border-color: #fff;
+  }
+  </style>
 </head>
 
-<body class="bg-gradient-primary">
+<body class="bg-gradient-primary1">
   <div class="container">
     <div class="card o-hidden border-0 shadow-lg my-5">
       <div class="card-body p-0">
         <div class="row">
-          <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+          <div class="col-lg-5 d-none d-lg-block bg-register-image1"></div>
           <div class="col-lg-7">
             <div class="p-5">
               <div class="text-center">
@@ -82,7 +128,7 @@
                   <?php echo $_GET['error'] ?>
                 </div>
               <?php } ?>
-              <form class="user" method="post" action="register.php">
+              <form class="user" method="post" action="register.php" enctype="multipart/form-data">
                 <div class="form-group">
                   <select class="form-control" name="type" required onchange="accountType()">
                     <option value="CLIENT">Client</option>
@@ -91,15 +137,15 @@
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="text" class="form-control" placeholder="First Name" name="firstname" required>
+                    <input type="text" class="form-control" placeholder="First Name" name="firstname" required onkeyup="lettersOnly(this)">
                   </div>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" placeholder="Last Name" name="lastname" required>
+                    <input type="text" class="form-control" placeholder="Last Name" name="lastname" required onkeyup="lettersOnly(this)">
                   </div>
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="text" class="form-control" placeholder="Mobile" name="mobile">
+                    <input type="text" class="form-control" placeholder="Mobile" name="mobile" onkeypress="return isNumeric(event)">
                   </div>
                   <div class="col-sm-6">
                     <input type="text" class="form-control" placeholder="Address" name="address">
@@ -107,10 +153,16 @@
                 </div>
                 <div class="form-group row" id="more" style="display:none">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="text" class="form-control" placeholder="Facebook" name="facebook_url">
+                    <input type="text" id="inputId" class="form-control" placeholder="Facebook" name="facebook_url">
                   </div>
                   <div class="col-sm-6">
                     <input type="text" class="form-control" placeholder="Portfolio" name="portfolio_url">
+                  </div>
+                </div>
+                <div class="form-group row" id="more2" style="display:none">
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <label>UPLOAD CURRICULUM VITAE</label>
+                    <input type="file" name="userfile" accept=".pdf">
                   </div>
                 </div>
                 <hr class="my-4">
@@ -149,11 +201,41 @@
       var type =document.getElementsByName('type')[0].value;
       if (type == 'CLIENT') {
         document.getElementById('more').style.display = 'none';
+        document.getElementById('more2').style.display = 'none';
       } else {
         document.getElementById('more').style.display = 'flex';
+        document.getElementById('more2').style.display = 'flex';
       }
     }
   </script>
+  <script>
+    function lettersOnly(input) {
+          var regex = /[^a-z]/gi;
+          input.value = input.value.replace(regex,"");
+
+  }
+  </script>
+   <script>
+  function isNumeric(e) {
+    var key = e.keyCode || e.which;
+    if (key < 48 || key > 57) {
+      e.preventDefault();
+    }
+  }
+</script>
+<script>
+  window.onload = function(){
+    //get the input element by its id
+    var input = document.getElementById("inputId");
+    //add an event listener to the input
+    input.addEventListener("blur", function() {
+    // check if the input value is a valid URL
+    if (!input.value.includes("https://www.facebook.com/") && !input.value.includes("www.facebook.com/")) {
+        alert("Please enter a valid Facebook link");
+    }
+    });
+  }
+</script>
 </body>
 
 </html>

@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql = "select * from user where type='SUPPLIER'";
   $result = $conn->query($sql);
@@ -27,6 +22,36 @@
         echo json_encode(false);
       }
       die;
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'deletesupplier') {
+    if (isset($_POST['userId'])) {
+        $user_id = $_POST['userId'];
+
+        // Prepare and bind
+        $stmt = $conn->prepare("DELETE user, booking, comment, likes, message, post, rating
+        FROM user 
+        LEFT JOIN booking ON booking.user_id_supplier = user.user_id
+        LEFT JOIN comment ON comment.user_id = user.user_id 
+        LEFT JOIN likes ON likes.user_id = user.user_id 
+        LEFT JOIN post ON post.user_id = user.user_id 
+        LEFT JOIN rating ON rating.user_id_supplier = user.user_id
+        LEFT JOIN message ON message.user_id_supplier = user.user_id
+
+        WHERE user.user_id = ?");
+        $stmt->bind_param("i", $user_id);
+
+        // Execute
+        $stmt->execute();
+
+        json_response([
+          'success' => true,
+          'message' => 'Successfully deleted.'
+        ]);
+
+        $stmt->close();
+        $conn->close();
+      }
     }
   }
 ?>
@@ -68,34 +93,37 @@
                       <th>Address</th>
                       <th>Status</th>
                       <th>Date Created</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     <?php
-                      while ($row = $result->fetch_assoc()) {
-                        if ($row['status'] == 'APPROVED') {
-                          $badge='badge-success';
-                        } else {
+                      if ($result->num_rows) {
+                        while ($row = $result->fetch_assoc()) {
                           $badge = 'badge-danger';
-                        }
+                          if ($row['status'] == 'APPROVED') {
+                            $badge='badge-success';
+                          }
 
-                        $user_id = $row['user_id'];
+                          $user_id = $row['user_id'];
 
-                        $sql_booking = "select count(*) as total from booking where user_id_supplier=$user_id";
-                        $result_booking = $conn->query($sql_booking);
-                        $booking_counter = $result_booking->fetch_assoc()['total'];
+                          $sql_booking = "select count(*) as total from booking where user_id_supplier=$user_id";
+                          $result_booking = $conn->query($sql_booking);
+                          $booking_counter = $result_booking->num_rows ? $result_booking->fetch_assoc()['total'] : 0;
 
-                        $sql_post = "select count(*) as total from post where user_id=$user_id";
-                        $result_post = $conn->query($sql_post);
-                        $post_counter = $result_post->fetch_assoc()['total'];
+                          $sql_post = "select count(*) as total from post where user_id=$user_id";
+                          $result_post = $conn->query($sql_post);
+                          $post_counter = $result_post->num_rows ? $result_post->fetch_assoc()['total'] : 0;
 
-                        $sql_rating = "select * from rating where user_id_supplier=$user_id";
-                        $result_rating = $conn->query($sql_rating);
-                        $total_rating = 0;
-                        while ($rating = $result_rating->fetch_assoc()) {
-                          $total_rating +=  (int)$rating['rate'];
-                        }
-                        $total_rating = $result_rating->num_rows ? number_format((float)($total_rating / $result_rating->num_rows), 2, '.', '') : 0;
+                          $sql_rating = "select * from rating where user_id_supplier=$user_id";
+                          $result_rating = $conn->query($sql_rating);
+                          $total_rating = 0;
+                          if ($result_rating->num_rows){
+                            while ($rating = $result_rating->fetch_assoc()) {
+                              $total_rating +=  (int)$rating['rate'];
+                            }
+                          }
+                          $total_rating = $result_rating->num_rows ? number_format((float)($total_rating / $result_rating->num_rows), 2, '.', '') : 0;
                     ?>
                       <tr>
                         <td>
@@ -121,6 +149,9 @@
                                       <a href="<?php echo $row['portfolio_url'] ?>" target="_blank" class="btn btn-outline-primary btn-floating">
                                         <i class="fa fa-link fa-lg"></i>
                                       </a>
+                                    </div>
+                                    <div>
+                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
                                     </div>
                                     <div class="d-flex justify-content-between text-center mt-5 mb-2">
                                       <div>
@@ -170,12 +201,15 @@
                                     <p class="text-muted mb-1"><?php echo $row['mobile'] ?></p>
                                     <p class="text-muted mb-4"><?php echo $row['address'] ?></p>
                                     <div class="mb-4 pb-2">
-                                      <a href="#" target="_blank" class="btn btn-outline-primary btn-floating">
+                                      <a href="<?php echo $row['facebook_url'] ?>" target="_blank" class="btn btn-outline-primary btn-floating">
                                         <i class="fab fa-facebook-f fa-lg"></i>
                                       </a>
-                                      <a href="#" target="_blank" class="btn btn-outline-primary btn-floating">
+                                      <a href="<?php echo $row['portfolio_url'] ?>" target="_blank" class="btn btn-outline-primary btn-floating">
                                         <i class="fa fa-link fa-lg"></i>
                                       </a>
+                                    </div>
+                                    <div>
+                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
                                     </div>
                                 </div>
                                 <?php if ($row['status'] !== 'APPROVED') { ?>
@@ -189,8 +223,31 @@
                         <?php } else echo '<span class="badge '.$badge.'">'.$row['status'].'</span>' ?>
                         </td>
                         <td><?php echo $row['created'] ?></td>
+                        <td>
+                          <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $user_id ?>">Delete</a>
+                          <div class="modal fade" id="deletePostModal<?php echo $user_id ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="exampleModalLabel">Delete Supplier?</h5>
+                                  <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                  </button>
+                                </div>
+                                <div class="modal-body">Are you sure you want to delete this supplier?</div>
+                                <div class="modal-footer">
+                                  <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                  <button class="btn btn-danger" type="button" data-dismiss="modal" onclick="deleteSupplier(<?php echo $user_id ?>)">Yes</a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
-                    <?php } ?>
+                    <?php
+                        }
+                      }
+                    ?>
                   </tbody>
                 </table>
               </div>
@@ -246,6 +303,26 @@
             window.location.reload();
           } else {
             alert('Something went wrong.');  
+          }
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+    }
+
+    function deleteSupplier(userId) {
+      $.ajax({
+        url: "suppliers.php",
+        type: "post",
+        data: {
+          userId,
+          action: 'deletesupplier',
+        },
+        success: function(data) {
+          alert(data.message);
+          if (data.success) {
+            window.location.reload();
           }
         },
         error: function(error) {

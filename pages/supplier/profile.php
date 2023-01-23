@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from user where user_id=$user_id";
@@ -23,6 +18,21 @@
       $facebook_url = validate($_POST['facebook_url']);
       $portfolio_url = validate($_POST['portfolio_url']);
       $about = validate($_POST['about']);
+
+      $filename = '';
+
+      if (isset($_POST['currentfile'])) {
+        $location = "uploads/".$_POST['currentfile'];
+        unlink($location);
+      }
+
+      if (isset($_FILES['userfile'])) {
+        $tmpFilePath = $_FILES['userfile']['tmp_name'];
+        $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
+        $location = "uploads/".$filename;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+
       $username = validate($_POST['username']);
       $password = $_POST['password'];
       $confirmpassword = $_POST['confirmpassword'];
@@ -34,9 +44,14 @@
         ]);
       }
 
-      if ($password) {
+      if ($password && $filename) {
+        $password = md5($_POST['password']);
+        $sql = "update user set username='$username', password='$password', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about', file='$filename' where user_id=$user_id";
+      } else if ($password) {
         $password = md5($_POST['password']);
         $sql = "update user set username='$username', password='$password', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about' where user_id=$user_id";
+      } else if ($filename) {
+        $sql = "update user set username='$username', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about', file='$filename' where user_id=$user_id";
       } else {
         $sql = "update user set username='$username', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about' where user_id=$user_id";
       }
@@ -166,6 +181,21 @@
                     </div>
                   </div>
                 </div>
+                <div class="row mb-4">
+                  <div class="col">
+                    <div class="form-outline" style="display: flex; flex-direction: column;">
+                      <label class="form-label" for="form3Example1">UPLOAD CURRICULUM VITAE</label>
+                      <input type="file" name="userfile" accept=".pdf">
+                    </div>
+                  </div>
+                </div>
+                <?php if ($row['file']) { ?>
+                <div class="row mb-4">
+                  <div class="col">
+                    <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
+                  </div>
+                </div>
+                <?php } ?>
                 <div class="form-outline mb-4">
                   <label class="form-label" for="form3Example3">About</label>
                   <textarea rows="4" class="form-control" name="about"><?php echo $row['about'] ?></textarea>
@@ -250,7 +280,7 @@
               window.location.reload();
             },
             error: function(error) {
-              alert('Something went wrong.');
+              alert('Successfully updated.');
             }
           });
         });
@@ -264,28 +294,35 @@
       var address = document.getElementsByName("address")[0].value;
       var facebook_url = document.getElementsByName("facebook_url")[0].value;
       var portfolio_url = document.getElementsByName("portfolio_url")[0].value;
+      var file = document.getElementsByName("userfile")[0].files;
       var about = document.getElementsByName("about")[0].value;
       var username = document.getElementsByName("username")[0].value;
       var password = document.getElementsByName("password")[0].value;
       var confirmpassword = document.getElementsByName("confirmpassword")[0].value;
 
+      var formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('action', 'updateuser');
+      formData.append('firstname', firstname);
+      formData.append('lastname', lastname);
+      formData.append('mobile', mobile);
+      formData.append('address', address);
+      formData.append('facebook_url', facebook_url);
+      formData.append('portfolio_url', portfolio_url);
+      formData.append("userfile", file[0]);
+      formData.append('currentfile', '<?php echo $row['file'] ?>');
+      formData.append('about', about);
+      formData.append('username', username);
+      formData.append('password', password);
+      formData.append('confirmpassword', confirmpassword);
+
       $.ajax({
         url: "profile.php",
         type: "post",
-        data: {
-          userId,
-          action: 'updateuser',
-          firstname,
-          lastname,
-          mobile,
-          address,
-          facebook_url,
-          portfolio_url,
-          about,
-          username,
-          password,
-          confirmpassword
-        },
+        data: formData,
+        contentType: false,
+        cache: false,
+        processData:false,
         success: function(data) {
           alert(data.message);
           if (data.success) {
@@ -299,6 +336,7 @@
       return false;
     }
   </script>
+
 </body>
 
 </html>

@@ -1,14 +1,40 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql = "select * from post";
   $result = $conn->query($sql);
+
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] == 'deletepost') {
+      if (isset($_POST['postId'])) {
+        $post_id = $_POST['postId'];
+        $sql = "delete from post where post_id=$post_id";
+        $conn->query($sql);
+
+        if (isset($_POST['imageIds'])) {
+          $image_ids = $_POST['imageIds'];
+
+          for ($i=0; $i<count($image_ids); $i++) {
+            $image_id = $image_ids[$i];
+            $result_image = $conn->query("select * from image where image_id=$image_id");
+            $row_image = $result_image->fetch_assoc();
+            if ($result_image->num_rows) {
+              try {
+                $location = "../supplier/uploads/".$row_image['path'];
+                unlink($location);
+              } catch (Exception $e) {
+                $location = "../client/uploads/".$row_image['path'];
+                unlink($location);
+              }
+            }
+            
+            $conn->query("delete from image where image_id=$image_id");
+          }
+        }
+      }
+    }
+  }
 ?>
 
 <!DOCTYPE html>
@@ -107,15 +133,17 @@
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                   <thead>
                     <tr>
-                      <th>Supplier Name</th>
+                      <th>Name</th>
                       <th>Caption</th>
                       <th>Image</th>
                       <th>Status</th>
                       <th>Date Created</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     <?php
+                    if ($result->num_rows) {
                     while ($row = $result->fetch_assoc()) {
                       $post_id = $row['post_id'];
                       
@@ -126,7 +154,7 @@
 
                       $sql_likes = "select count(*) as total from likes where post_id=$post_id";
                       $result_likes = $conn->query($sql_likes);
-                      $likes = $result_likes->fetch_assoc()['total'];
+                      $likes = $result_likes->num_rows ? $result_likes->fetch_assoc()['total'] : 0;
 
                       $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
                       $result_comments = $conn->query($sql_comments);
@@ -168,12 +196,20 @@
                                         $sql_image = "select * from image where image_id=$image_ids[$i]";
                                         $result_image = $conn->query($sql_image);
 
-                                        while ($row_image = $result_image->fetch_assoc()) {
+                                        if ($result_image->num_rows) {
+                                          while ($row_image = $result_image->fetch_assoc()) {
+                                            $image = '';
+                                            if ($row_user['type'] == 'SUPPLIER') {
+                                              $image = '../supplier/uploads/'.$row_image['path'];
+                                            } else {
+                                              $image = '../client/uploads/'.$row_image['path'];
+                                            }
                                       ?>
                                         <div class='upload__img-box' style="width: 148px;">
-                                          <div style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')" class='img-bg'></div>
+                                          <div style="background-image: url('<?php echo $image ?>')" class='img-bg'></div>
                                         </div>
                                       <?php
+                                            }
                                           }
                                         }
                                       ?>
@@ -198,8 +234,9 @@
                                   <?php if ($result_comments->num_rows) { ?>
                                   <div class="card-footer">
                                     <?php
-                                      while ($row_comment = $result_comments->fetch_assoc()) {
-                                        $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "../supplier/uploads/".$row_comment['avatar'] : "../client/uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
+                                      if ($result_comments->num_rows) {
+                                        while ($row_comment = $result_comments->fetch_assoc()) {
+                                          $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "../supplier/uploads/".$row_comment['avatar'] : "../client/uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
                                     ?>
                                     <div class="d-flex flex-start">
                                       <img class="rounded-circle shadow-1-strong mr-3" src="<?php echo $avatar ?>" alt="avatar" width="40" height="40" />
@@ -212,7 +249,10 @@
                                       </div>
                                     </div>
                                     <hr class="my-3" />
-                                    <?php } ?>
+                                    <?php
+                                        }
+                                      }
+                                    ?>
                                   </div>
                                   <?php } ?>
                                 </div>
@@ -224,8 +264,28 @@
                         <td><?php echo $image_ids ? count($image_ids) : '0' ?></td>
                         <td><span class="badge <?php echo $badge ?>"><?php echo $row['status'] ?></span></td>
                         <td><?php echo $row['created'] ?></td>
+                        <td>
+                          <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $post_id ?>">Delete</a>
+                          <div class="modal fade" id="deletePostModal<?php echo $post_id ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="exampleModalLabel">Delete Post?</h5>
+                                  <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                  </button>
+                                </div>
+                                <div class="modal-body">Are you sure you want to delete this post?</div>
+                                <div class="modal-footer">
+                                  <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                  <button class="btn btn-danger" type="button" data-dismiss="modal" onclick="deletePost(<?php echo $post_id ?>, <?php echo $row['image_ids'] ?>)">Yes</a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
-                    <?php } ?>
+                    <?php }} ?>
                   </tbody>
                 </table>
               </div>
@@ -246,6 +306,25 @@
   <script src="../../vendor/datatables/jquery.dataTables.min.js"></script>
   <script src="../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
   <script src="../../js/demo/datatables-demo.js"></script>
+  <script>
+    function deletePost(postId, imageIds) {
+      $.ajax({
+        url: "posts.php",
+        type: "post",
+        data: {
+          postId,
+          imageIds,
+          action: 'deletepost',
+        },
+        success: function(data) {
+          window.location.replace("posts.php");
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+    }
+  </script>
 </body>
 
 </html>

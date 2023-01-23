@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_GET['id'];
   $sql = "select * from user where user_id=$user_id";
@@ -38,7 +33,7 @@
 
       $sql_check = "select count(*) as total from booking where (status='PENDING' or status='ACCEPTED') and user_id_supplier=$user_id and schedule_date >= '$converted_date' and schedule_date <= '$converted_date'";
       $result_check = $conn->query($sql_check);
-      $total = $result_check->fetch_assoc()['total'];
+      $total = $result_check->num_rows ? $result_check->fetch_assoc()['total'] : 0;
       if ($total) {
         json_response([
           'success' => false,
@@ -63,6 +58,34 @@
       json_response([
         'success' => true,
         'message' => 'Thank you for your feedback!'
+      ]);
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] == 'addmessage') {
+      $message = $_POST['message'];
+
+      $sql_check = "select count(*) as total from message where user_id_client=$current_user_id and user_id_supplier=$user_id and is_main=true";
+      $result_check = $conn->query($sql_check);
+      $total = $result_check->num_rows ? $result_check->fetch_assoc()['total'] : 0;
+
+      if ($total) {
+        $sql_update = "update message set updated=now() where user_id_client=$current_user_id and user_id_supplier=$user_id and is_main=true";
+        $conn->query($sql_update);
+
+        $sql = "insert into message (user_id_client, user_id_supplier, is_main, sender, text) values('$current_user_id', '$user_id', false, 'CLIENT', '$message')";
+        $conn->query($sql);
+      } else {
+        $sql = "insert into message (user_id_client, user_id_supplier, is_main, sender, text) values('$current_user_id', '$user_id', true, 'CLIENT', '$message')";
+        $conn->query($sql);
+      }
+      
+      $latestId = $conn->insert_id;
+      $sql = "insert into notification (message_id, is_read) values('$latestId', false)";
+      $conn->query($sql);
+      
+      json_response([
+        'success' => true,
+        'message' => 'Message successfully sent!'
       ]);
     }
 
@@ -265,23 +288,31 @@
               <div class="row d-flex justify-content-center align-items-center h-100">
                 <div class="col">
                   <div class="card">
-                    <div class="rounded-top text-white d-flex flex-row" style="background-color: #000; height:200px;">
-                      <div class="ml-4 mt-5 d-flex flex-column" style="width: 150px; height: 280px;">
-                        <img src=<?php echo $row['avatar'] ? "../supplier/uploads/".$row['avatar'] : '../../img/undraw_profile.svg' ?> alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2" style="width: 150px; height: 150px; z-index: 1">
-                        <button type="button" class="btn btn-primary" style="z-index: 1;" data-toggle="modal" data-target="#bookModal">
-                          Book
-                        </button>
-                        <?php if (!$result_rating_exist->num_rows) { ?>
-                        <button type="button" class="btn btn-info mt-2" style="z-index: 1;" data-toggle="modal" data-target="#reviewModal">
-                          Add Review
-                        </button>
-                        <?php } ?>
+                    <div class="rounded-top text-white d-flex flex-row justify-content-between" style="background-color: #000; height:200px;">
+                      <div class="d-flex flex-row">
+                        <div class="ml-4 mt-5 d-flex flex-column" style="width: 150px; height: 280px;">
+                          <img src=<?php echo $row['avatar'] ? "../supplier/uploads/".$row['avatar'] : '../../img/undraw_profile.svg' ?> alt="Generic placeholder image" class="img-fluid img-thumbnail mt-4 mb-2" style="width: 150px; height: 150px; z-index: 1">
+                          <button type="button" class="btn btn-primary" style="z-index: 1;" data-toggle="modal" data-target="#bookModal">
+                            Book
+                          </button>
+                          <?php if (!$result_rating_exist->num_rows) { ?>
+                          <button type="button" class="btn btn-info mt-2" style="z-index: 1;" data-toggle="modal" data-target="#reviewModal">
+                            Add Review
+                          </button>
+                          <?php } ?>
+                        </div>
+                        <div class="ml-3" style="margin-top: 110px;">
+                          <h5><?php echo $row['firstname'].' '.$row['lastname'] ?></h5>
+                          <span class="text-gray-500"><i class="fa fa-phone"></i> <?php echo $row['mobile'] ?></span>
+                          <br/>
+                          <span class="text-gray-500"><i class="fa fa-map"></i> <?php echo $row['address'] ?></span>
+                        </div>
                       </div>
-                      <div class="ml-3" style="margin-top: 110px;">
-                        <h5><?php echo $row['firstname'].' '.$row['lastname'] ?></h5>
-                        <span class="text-gray-500"><i class="fa fa-phone"></i> <?php echo $row['mobile'] ?></span>
-                        <br/>
-                        <span class="text-gray-500"><i class="fa fa-map"></i> <?php echo $row['address'] ?></span>
+                      <div class="d-flex flex-column justify-content-end mb-3 mr-3">
+                        <button type="button" class="btn btn-success mt-2" style="z-index: 1;" data-toggle="modal" data-target="#sendMessageModal">Send a message</button>
+                        <?php if ($row['file']) { ?>
+                        <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-secondary mt-2" style="z-index: 1;">Generate Curriculum Vitae</a>
+                        <?php } ?>
                       </div>
                     </div>
                     <div class="p-4 text-black" style="background-color: #f8f9fa;">
@@ -289,8 +320,10 @@
                         <div>
                           <?php
                             $total_rating = 0;
-                            while ($rating = $result_rating->fetch_assoc()) {
-                              $total_rating += $rating['rate'];
+                            if ($result_rating->num_rows) {
+                              while ($rating = $result_rating->fetch_assoc()) {
+                                $total_rating += $rating['rate'];
+                              }
                             }
 
                             $total_rating = $result_rating->num_rows ? number_format((float)($total_rating / $result_rating->num_rows), 2, '.', '') : 0;
@@ -318,6 +351,7 @@
                         <p class="lead fw-normal mb-0">Posts</p>
                       </div>
                       <?php
+                        if ($result_posts->num_rows){
                         while ($row_post = $result_posts->fetch_assoc()) {
                           $post_id = $row_post['post_id'];
 
@@ -329,7 +363,11 @@
                           $current_user_id = $_SESSION['user_id'];
                           $sql_like = "select count(*) as total from likes where user_id=$current_user_id and post_id=$post_id";
                           $result_like = $conn->query($sql_like);
-                          $liked = $result_like->fetch_assoc()['total'];
+                          $liked = $result_like->num_rows ? $result_like->fetch_assoc()['total'] : 0;
+
+                          $sql_likes = "select count(*) as total from likes where post_id=$post_id";
+                          $result_likes = $conn->query($sql_likes);
+                          $likeds = $result_likes->num_rows ? $result_likes->fetch_assoc()['total'] : 0;
 
                           $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
                           $result_comments = $conn->query($sql_comments);
@@ -348,7 +386,7 @@
                             </div>
                           </a>
                           <div>
-                            <?php echo date_format(date_create($row_post['created']), 'D, M j Y h:ia') ?>
+                            <?php echo getDateTimeDifferenceString($row_post['created']) ?>
                           </div>
                         </div>
                         <div class="card-body">
@@ -360,11 +398,12 @@
                               $sql_image = "select * from image where image_id=$image_ids[$i]";
                               $result_image = $conn->query($sql_image);
 
+                              if ($result_image->num_rows) {
                               while ($row_image = $result_image->fetch_assoc()) {
                             ?>
                               <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo "../supplier/uploads/".$row_image['path'] ?>" style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')"></a>
                             <?php
-                                }
+                                }}
                               }
                             ?>
                           </div>
@@ -372,7 +411,7 @@
                           <div class="small d-flex justify-content-start">
                             <a href="#!" class="d-flex align-items-center mr-3 text-decoration-none text-gray-800" onclick="togglePostLike(<?php echo $post_id ?>, <?php echo $liked ?>)">
                               <i class="<?php echo $liked ? 'fa':'far' ?> fa-thumbs-up mr-1"></i>
-                              <p class="mb-0">Like (<?php echo $liked ?>)</p>
+                              <p class="mb-0">Like (<?php echo $likeds ?>)</p>
                             </a>
                             <a href="#!" class="d-flex align-items-center text-decoration-none text-gray-800">
                               <i class="far fa-comment-dots mr-1"></i>
@@ -393,6 +432,7 @@
                             <button type="button" class="btn btn-primary btn-sm" onclick="addComment(<?php echo $post_id ?>)">Post comment</button>
                           </div>
                           <?php
+                            if ($result_comments->num_rows){
                             while ($row_comment = $result_comments->fetch_assoc()) {
                               $avatar = $row_comment['avatar'] ? ($row_comment['type'] == 'SUPPLIER' ? "../supplier/uploads/".$row_comment['avatar'] : "uploads/".$row_comment['avatar']) : '../../img/undraw_profile.svg'
                           ?>
@@ -401,7 +441,7 @@
                             <div>
                               <h6 class="fw-bold mb-1"><?php echo $row_comment['firstname']." ".$row_comment['lastname'] ?></h6>
                               <div class="d-flex align-items-center mb-3">
-                                <p class="mb-0" style="font-size: 12px;"><?php echo date_format(date_create($row_comment['created']), 'D, M j Y h:ia') ?></p>
+                                <p class="mb-0" style="font-size: 12px;"><?php echo getDateTimeDifferenceString($row_comment['created']) ?></p>
                               </div>
                               <p class="mb-0"><?php echo $row_comment['message'] ?></p>
                               <?php if ($row_comment['user_id'] == $_SESSION['user_id']) { ?>
@@ -410,10 +450,10 @@
                             </div>
                           </div>
                           <hr class="my-3" />
-                          <?php } ?>
+                          <?php }} ?>
                         </div>
                       </div>
-                      <?php } ?>
+                      <?php }} ?>
                     </div>
                   </div>
                 </div>
@@ -540,9 +580,7 @@
 
           if (!$result_rating->num_rows) {
             echo "No reviews yet.";
-          }
-
-
+          } else {
           while ($rating = $result_rating->fetch_assoc()) {
             $user_id_client = $rating['user_id_client'];
             $sql_client = "select * from user where user_id=$user_id_client";
@@ -555,7 +593,7 @@
           <div>
             <h6 class="fw-bold mb-1"><?php echo $row_client['firstname']." ".$row_client['lastname'] ?></h6>
             <div class="d-flex align-items-center mb-3">
-              <p class="mb-0" style="font-size: 12px;"><?php echo date_format(date_create($rating['created']), 'D, M j Y h:ia') ?></p>
+              <p class="mb-0" style="font-size: 12px;"><?php echo getDateTimeDifferenceString($rating['created']) ?></p>
             </div>
             <p class="mb-0"><?php echo $rating['message'] ?></p>
             <div class="stars">
@@ -568,8 +606,31 @@
           </div>
         </div>
         <hr class="my-3" />
-        <?php } ?>
+        <?php }} ?>
         </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="sendMessageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Send a message</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <form onsubmit="return addMessage()">
+          <div class="modal-body">
+            <div class="form-outline mb-4">
+              <textarea rows="4" name="send-message-text" required class="form-control"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top:none">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit">Submit</a>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -578,6 +639,7 @@
   <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
   <script src="../../vendor/lightbox/fslightbox.js"></script>
   <script src="../../js/sb-admin-2.min.js"></script>
+  <script src="../../js/client.js"></script>
   <script>
     function addAppointment() {
       var firstname = document.getElementsByName("firstname")[0].value;
@@ -639,6 +701,26 @@
           if (data.success) {
             window.location.reload();
           }
+        },
+        error: function(error) {
+          alert('Something went wrong.');
+        }
+      });
+      return false;
+    }
+
+    function addMessage() {
+      var message = document.getElementsByName("send-message-text")[0].value;
+
+      $.ajax({
+        url: "supplier.php?id=<?php echo $user_id ?>",
+        type: "post",
+        data: {
+          action: 'addmessage',
+          message
+        },
+        success: function(data) {
+          window.location.href = "messages.php?supplier_id=<?php echo $user_id ?>";
         },
         error: function(error) {
           alert('Something went wrong.');

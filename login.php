@@ -52,15 +52,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
   <link href="css/sb-admin-2.min.css" rel="stylesheet">
 </head>
-
-<body class="bg-gradient-primary">
+<style>
+  .bg-login-image1 {
+  background: url("back1.jpg");
+  background-position: center;
+  background-size: cover;
+}
+.bg-gradient-primary1 {
+    background-color: #4e73df;
+     background: url("back.jpg");
+    background-size: cover;
+    }
+    .card{
+  background-color: #121314;
+}
+.text-gray-900 {
+    color: #ffffff !important;
+  }
+  .btn-primary {
+    color: #fff;
+   background: linear-gradient(90deg, rgba(1,1,1,1) 23%, #8b6300 100%);
+    border-color: #fff;
+  }
+  .btn-primary:hover {
+    color: #fff;
+   background: linear-gradient(90deg, rgba(191,123,1,1) 23%, rgba(11,11,11,1) 100%);
+    border-color: #fff;
+  }
+</style>
+<body class="bg-gradient-primary1">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-xl-10 col-lg-12 col-md-9">
         <div class="card o-hidden border-0 shadow-lg my-5">
           <div class="card-body p-0">
             <div class="row">
-              <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+              <div class="col-lg-6 d-none d-lg-block bg-login-image1"></div>
               <div class="col-lg-6">
                 <div class="p-5">
                   <div class="text-center">

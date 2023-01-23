@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql = "select * from user where type='ADMIN'";
   $result = $conn->query($sql);
@@ -126,7 +121,10 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <?php while ($row = $result->fetch_assoc()) { ?>
+                    <?php
+                      if ($result->num_rows) {
+                        while ($row = $result->fetch_assoc()) {
+                    ?>
                       <tr>
                         <td>
                           <div>
@@ -208,7 +206,10 @@
                           </div>
                         </td>
                       </tr>
-                    <?php } ?>
+                    <?php
+                        }
+                      }
+                    ?>
                   </tbody>
                 </table>
               </div>

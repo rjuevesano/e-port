@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql_client = "select count(*) as total from user where type='CLIENT'";
   $result_client = $conn->query($sql_client);
@@ -53,7 +48,7 @@
                     <div class="col mr-2">
                       <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                         Clients</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_client->fetch_assoc()['total'] ?></div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_client->num_rows ? $result_client->fetch_assoc()['total'] : 0 ?></div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -69,7 +64,7 @@
                     <div class="col mr-2">
                       <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                         Suppliers</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_supplier->fetch_assoc()['total'] ?></div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_supplier->num_rows ? $result_supplier->fetch_assoc()['total'] : 0 ?></div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-boxes fa-2x text-gray-300"></i>
@@ -85,7 +80,7 @@
                     <div class="col mr-2">
                       <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                         Bookings</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_booking->fetch_assoc()['total'] ?></div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_booking->num_rows ? $result_booking->fetch_assoc()['total'] : 0 ?></div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-table fa-2x text-gray-300"></i>
@@ -101,7 +96,7 @@
                     <div class="col mr-2">
                       <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                         Posts</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_post->fetch_assoc()['total'] ?></div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $result_post->num_rows ? $result_post->fetch_assoc()['total'] : 0 ?></div>
                     </div>
                     <div class="col-auto">
                       <i class="fas fa-list fa-2x text-gray-300"></i>

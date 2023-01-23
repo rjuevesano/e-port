@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $user_id = $_SESSION['user_id'];
   $sql = "select * from booking where user_id_supplier=$user_id";
@@ -74,6 +69,7 @@
                   </thead>
                   <tbody>
                     <?php
+                      if ($result->num_rows){
                       while ($row = $result->fetch_assoc()) {
                         $user_id_client = $row['user_id_client'];
                         $sql_client = "select * from user where user_id=$user_id_client";
@@ -196,7 +192,7 @@
                         <?php } ?>
                       </td>
                     </tr>
-                    <?php } ?>
+                    <?php }} ?>
                   </tbody>
                 </table>
               </div>
@@ -246,6 +242,7 @@
       $sql_calendar = "select * from booking where user_id_supplier=$user_id";
       $result_calendar = $conn->query($sql_calendar);
       
+      if ($result_calendar->num_rows) {
       while ($calendar = $result_calendar->fetch_assoc()) {
         $user_id_client = $calendar['user_id_client'];
         $sql_client = "select * from user where user_id=$user_id_client";
@@ -267,6 +264,7 @@
     <?php
         }
       }
+    }
     ?>
 
     window.view = 'calendar-view';

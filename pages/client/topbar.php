@@ -42,15 +42,79 @@
     border-radius: 50%;
   }
 </style>
+<style>
+  .upload__inputfile {
+    width: .1px;
+    height: .1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+  .upload__btn {
+    display: inline-block;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    min-width: 116px;
+    padding: 5px;
+    transition: all .3s ease;
+    cursor: pointer;
+    border: 2px solid;
+    background-color: #4045ba;
+    border-color: #4045ba;
+    border-radius: 10px;
+    line-height: 26px;
+    font-size: 14px;
+  }
+  .upload__btn:hover {
+    background-color: unset;
+    color: #4045ba;
+    transition: all .3s ease;
+  }
+  .upload__btn-box {
+    margin-bottom: 10px;
+  }
+  .upload__img-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+  }
+  .upload__img-box {
+    width: 162px;
+    padding: 0 10px;
+    margin-bottom: 12px;
+  }
+  .upload__img-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: center;
+    line-height: 24px;
+    z-index: 1;
+    cursor: pointer;color: white;
+  }
+  .img-bg {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+    padding-bottom: 100%;
+  }
+</style>
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow" style="position: fixed; width: 100%; z-index: 2;">
-  <a class="sidebar-brand d-flex align-items-center justify-content-center text-decoration-none" href="index.php">
+  <a class="sidebar-brand d-flex align-items-center justify-content-center text-decoration-none text-white" href="index.php">
     <div class="sidebar-brand-icon rotate-n-15">
-      <i class="fas fa-laugh-wink"></i>
+      <i class="fas fa-folder-open"></i>
     </div>
     <div class="sidebar-brand-text mx-3">E-Port</div>
   </a>
-  <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-    <div class="input-group autocomplete">
+  <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" style="display: flex!important;">
+    <div class="input-group autocomplete" style="width: 280px;">
       <input type="text" id="searchInput" class="form-control bg-light border-0 small" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
       <div class="input-group-append">
         <button class="btn btn-primary" type="button" id="btn-search">
@@ -58,6 +122,7 @@
         </button>
       </div>
     </div>
+    <button class="btn btn-info ml-2" type="button" data-toggle="modal" data-target="#addPostModal">Add Post</button>
   </form>
   <ul class="navbar-nav ml-auto">
     <li class="nav-item dropdown no-arrow d-sm-none">
@@ -75,6 +140,42 @@
             </div>
           </div>
         </form>
+      </div>
+    </li>
+    <li class="nav-item dropdown no-arrow mx-1">
+      <?php
+        $current_user_id = $_SESSION['user_id'];
+        $sql_notification = "select a.*, b.* from notification as a inner join message as b on a.message_id=b.message_id and a.is_read=false and b.user_id_client=$current_user_id and b.sender='SUPPLIER'";
+        $result_notification = $conn->query($sql_notification);
+      ?>
+      <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-envelope fa-fw"></i>
+        <?php if ($result_notification->num_rows) { ?>
+        <span class="badge badge-danger badge-counter"><?php echo $result_notification->num_rows ?></span>
+        <?php } ?>
+      </a>
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="messagesDropdown">
+        <h6 class="dropdown-header pl-2 pr-2">Message Center</h6>
+        <?php
+          if ($result_notification->num_rows) {
+          while($row_notification = $result_notification->fetch_assoc()) {
+            $user_id_supplier = $row_notification['user_id_supplier'];
+            $sql_user = "select * from user where user_id=$user_id_supplier";
+            $result_user = $conn->query($sql_user);
+            $row_user = $result_user->fetch_assoc();
+            $avatar = $row_user['avatar'] ? '../supplier/uploads/'.$row_user['avatar'] : '../../img/undraw_profile.svg';
+        ?>
+        <a class="dropdown-item d-flex align-items-center pl-2 pr-2" href="messages.php?supplier_id=<?php echo $row_notification['user_id_supplier'] ?>&notification_id=<?php echo $row_notification['notification_id'] ?>">
+          <div class="dropdown-list-image mr-3">
+            <img class="rounded-circle" src="<?php echo $avatar ?>" alt="...">
+          </div>
+          <div class="font-weight-bold">
+            <div class="text-truncate"><?php echo $row_notification['text'] ?></div>
+            <div class="small text-gray-500"><?php echo $row_user['firstname']." ".$row_user['lastname'] ?> · <?php echo getDateTimeDifferenceString($row_notification['created']) ?></div>
+          </div>
+        </a>
+        <?php }} else { echo "<div class='p-2'>No recent messages.</div>"; } ?>
+        <a class="dropdown-item text-center small text-gray" href="messages.php">Read More Messages</a>
       </div>
     </li>
     <li class="nav-item dropdown no-arrow">
@@ -109,6 +210,41 @@
         <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
         <a class="btn btn-primary" href="../../logout.php">Logout</a>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addPostModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Post</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <form onsubmit="return addPost()">
+        <div class="modal-body">
+          <div class="form-outline mb-4">
+            <label class="form-label" for="form3Example3">Caption</label>
+            <input type="text" name="caption" required class="form-control" />
+          </div>
+          <div class="form-outline mb-4">
+            <div class="upload__box">
+              <div class="upload__btn-box">
+                <label class="btn btn-primary">
+                  Upload photos
+                  <input type="file" multiple accept="image/png, image/gif, image/jpeg" class="upload__inputfile">
+                </label>
+              </div>
+              <div class="upload__img-wrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Submit</a>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -221,6 +357,7 @@
     $sql_list = "select * from user where type='SUPPLIER' and status='APPROVED'";
     $result_list = $conn->query($sql_list);
     
+    if ($result_list->num_rows) {
     while ($list = $result_list->fetch_assoc()) {
   ?>
   suppliers.push({
@@ -229,7 +366,7 @@
     name: '<?php echo $list['firstname']." ".$list['lastname'] ?>'
   })
   <?php
-    }
+    }}
   ?>
 
   /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/

@@ -1,11 +1,6 @@
 <?php
   session_start();
-  require_once "../../config.php";
-
-  if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    die;
-  }
+  require_once "../../check_session.php";
 
   $sql = "select * from booking";
   $result = $conn->query($sql);
@@ -53,6 +48,7 @@
                   </thead>
                   <tbody>
                     <?php
+                      if ($result->num_rows) {
                       while ($row = $result->fetch_assoc()) {
                         $user_id_client = $row['user_id_client'];
                         $sql_client = "select * from user where user_id=$user_id_client";
@@ -80,7 +76,7 @@
                       <td><span class="badge <?php echo $badge ?>"><?php echo $row['status'] ?></span></td>
                       <td><?php echo $row['created'] ?></td>
                     </tr>
-                    <?php } ?>
+                    <?php }} ?>
                   </tbody>
                 </table>
               </div>
