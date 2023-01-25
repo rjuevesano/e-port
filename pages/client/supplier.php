@@ -162,7 +162,7 @@
       background: -webkit-linear-gradient(to right, rgba(251, 194, 235, 1), rgba(166, 193, 238, 1));
 
       /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-      background: linear-gradient(to right, rgba(251, 194, 235, 1), rgba(166, 193, 238, 1))
+      background: linear-gradient(to right, #e3e6f0, #e3e6f0);
     }
     .avatar {
       vertical-align: middle;
@@ -195,49 +195,6 @@
     }
     .required {
       color: red;
-    }
-    .lg-grid {
-      position: relative;
-      display: block;
-      height: 37.8rem !important;
-    }
-    .lb-item {
-      position: absolute;
-      background-position: 50%;
-      background-repeat: no-repeat;
-      background-size: cover;
-      border-top: 2px solid #fff;
-      border-right: 2px solid #fff;
-      cursor: pointer;
-      width: 50%;
-    }
-    .lb-item:first-child {
-      height: 50%;
-    }
-    .lb-item:nth-child(2) {
-      height: 50%;
-      bottom: 0;
-      top: auto;
-    }
-    .lb-item:nth-child(3) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(4) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(5) {
-      height: 33.3333333%;
-      bottom: 0;
-      top: auto;
-      left: auto;
-      right: 0;
-      border-right: 0;
     }
     .rate {
       float: left;
@@ -273,6 +230,18 @@
     .rate > input:checked ~ label:hover ~ label,
     .rate > label:hover ~ input:checked ~ label {
         color: #c59b08;
+    }
+    .grid { 
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-gap: 20px;
+      align-items: stretch;
+    }
+    .grid img {
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 6px 0px  rgba(0,0,0,0.3);
+      width: 200px;
+      height: 200px;
     }
   </style>
 </head>
@@ -310,8 +279,8 @@
                       </div>
                       <div class="d-flex flex-column justify-content-end mb-3 mr-3">
                         <button type="button" class="btn btn-success mt-2" style="z-index: 1;" data-toggle="modal" data-target="#sendMessageModal">Send a message</button>
-                        <?php if ($row['file']) { ?>
-                        <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-secondary mt-2" style="z-index: 1;">Generate Curriculum Vitae</a>
+                        <?php if ($row['file_curriculum']) { ?>
+                        <a href="../../download.php?file=<?php echo $row['file_curriculum'] ?>" target="_blank" class="btn btn-secondary mt-2" style="z-index: 1;">View Curriculum Vitae</a>
                         <?php } ?>
                       </div>
                     </div>
@@ -376,7 +345,7 @@
                       ?>
                       <div class="card shadow m-3">
                         <div class="card-header py-3 d-flex flex-row justify-content-between align-items-center">
-                          <a href="profile.php?supplier_id=<?php echo $row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
+                          <a href="supplier.php?id=<?php echo $row_user['user_id'] ?>" class="d-flex flex-row align-items-center text-decoration-none">
                             <div class="mr-2">
                               <img class="avatar" src="<?php echo $row_user['avatar'] ? "../supplier/uploads/".$row_user['avatar'] : '../../img/undraw_profile.svg' ?>" alt=""/>
                             </div>
@@ -392,7 +361,7 @@
                         <div class="card-body">
                           <p><?php echo $row_post['caption'] ?></p>
                           <?php if ($image_ids) { ?>
-                          <div class="lg-grid mb-3">
+                          <div class="grid mb-3">
                           <?php
                             for ($i=0; $i<count($image_ids); $i++) {
                               $sql_image = "select * from image where image_id=$image_ids[$i]";
@@ -401,7 +370,9 @@
                               if ($result_image->num_rows) {
                               while ($row_image = $result_image->fetch_assoc()) {
                             ?>
-                              <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo "../supplier/uploads/".$row_image['path'] ?>" style="background-image: url('<?php echo "../supplier/uploads/".$row_image['path'] ?>')"></a>
+                              <a data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo "../supplier/uploads/".$row_image['path'] ?>">
+                                <img src="<?php echo "../supplier/uploads/".$row_image['path'] ?>" alt=""/>
+                              </a>
                             <?php
                                 }}
                               }

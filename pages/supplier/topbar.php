@@ -34,15 +34,47 @@
     <?php } ?>
   </div>
   <ul class="navbar-nav ml-auto">
+    <li class="nav-item dropdown no-arrow mx-1">
+      <?php
+        $current_user_id = $_SESSION['user_id'];
+        $sql_notification = "select a.*, b.* from notification as a inner join message as b on a.message_id=b.message_id and a.is_read=false and b.user_id_supplier=$current_user_id and b.sender='CLIENT'";
+        $result_notification = $conn->query($sql_notification);
+      ?>
+      <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-envelope fa-fw"></i>
+        <?php if ($result_notification->num_rows) { ?>
+        <span class="badge badge-danger badge-counter"><?php echo $result_notification->num_rows ?></span>
+        <?php } ?>
+      </a>
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="messagesDropdown">
+        <h6 class="dropdown-header pl-2 pr-2">Message Center</h6>
+        <?php
+          if ($result_notification->num_rows) {
+          while($row_notification = $result_notification->fetch_assoc()) {
+            $user_id_client = $row_notification['user_id_client'];
+            $sql_user = "select * from user where user_id=$user_id_client";
+            $result_user = $conn->query($sql_user);
+            $row_user = $result_user->fetch_assoc();
+            $avatar = $row_user['avatar'] ? '../client/uploads/'.$row_user['avatar'] : '../../img/undraw_profile.svg';
+        ?>
+        <a class="dropdown-item d-flex align-items-center pl-2 pr-2" href="messages.php?client_id=<?php echo $row_notification['user_id_client'] ?>&notification_id=<?php echo $row_notification['notification_id'] ?>">
+          <div class="dropdown-list-image mr-3">
+            <img class="rounded-circle" src="<?php echo $avatar ?>" alt="...">
+          </div>
+          <div class="font-weight-bold">
+            <div class="text-truncate"><?php echo $row_notification['text'] ?></div>
+            <div class="small text-gray-500"><?php echo $row_user['firstname']." ".$row_user['lastname'] ?> · <?php echo getDateTimeDifferenceString($row_notification['created']) ?></div>
+          </div>
+        </a>
+        <?php }} else { echo "<div class='p-2'>No recent messages.</div>"; } ?>
+        <a class="dropdown-item text-center small text-gray" href="messages.php">Read More Messages</a>
+      </div>
+    </li>
     <li class="nav-item dropdown show no-arrow">
       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <img class="img-profile rounded-circle" style="border: 1px solid" src="<?php echo $_SESSION['user_avatar'] ? "uploads/".$_SESSION['user_avatar'] : '../../img/undraw_profile.svg' ?>">
       </a>
       <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-        <a class="dropdown-item" href="messages.php">
-          <i class="fa fa-envelope fa-sm fa-fw mr-2 text-gray-400"></i>
-          Messages
-        </a>
         <a class="dropdown-item" href="profile.php">
           <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
           Profile

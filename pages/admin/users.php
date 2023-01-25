@@ -2,6 +2,7 @@
   session_start();
   require_once "../../check_session.php";
 
+  $current_user_id = $_SESSION['user_id'];
   $sql = "select * from user where type='ADMIN'";
   $result = $conn->query($sql);
 
@@ -186,6 +187,7 @@
                         <td>****</td>
                         <td><?php echo $row['created'] ?></td>
                         <td>
+                          <?php if ($current_user_id != $row['user_id']) { ?>
                           <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletUserModal<?php echo $row['user_id'] ?>">Delete</a>
                           <div class="modal fade" id="deletUserModal<?php echo $row['user_id'] ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
@@ -204,6 +206,7 @@
                               </div>
                             </div>
                           </div>
+                          <?php } ?>
                         </td>
                       </tr>
                     <?php

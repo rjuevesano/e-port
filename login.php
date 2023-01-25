@@ -113,10 +113,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   <div class="text-center">
                     <a class="small" href="register.php">Create an Account</a>
                   </div>
+                  <div class="text-center">
+                    <a class="small" href="#"  data-toggle="modal" data-target="#forgotModal">Forgot Password?</a>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="forgotModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Hi there!</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">Please contact the administrator at email@email.com to reset your password.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Okay</button>
         </div>
       </div>
     </div>

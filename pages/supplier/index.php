@@ -77,48 +77,17 @@
       height: 40px;
       border-radius: 50%;
     }
-    .lg-grid {
-      position: relative;
-      display: block;
-      height: 37.8rem !important;
+    .grid { 
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-gap: 20px;
+      align-items: stretch;
     }
-    .lb-item {
-      position: absolute;
-      background-position: 50%;
-      background-repeat: no-repeat;
-      background-size: cover;
-      border-top: 2px solid #fff;
-      border-right: 2px solid #fff;
-      cursor: pointer;
-      width: 50%;
-    }
-    .lb-item:first-child {
-      height: 50%;
-    }
-    .lb-item:nth-child(2) {
-      height: 50%;
-      bottom: 0;
-      top: auto;
-    }
-    .lb-item:nth-child(3) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(4) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(5) {
-      height: 33.3333333%;
-      bottom: 0;
-      top: auto;
-      left: auto;
-      right: 0;
-      border-right: 0;
+    .grid img {
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 6px 0px  rgba(0,0,0,0.3);
+      width: 200px;
+      height: 200px;
     }
   </style>
 </head>
@@ -155,6 +124,10 @@
               $result_like = $conn->query($sql_like);
               $liked = $result_like->num_rows ? $result_like->fetch_assoc()['total'] : 0;
 
+              $sql_likes = "select count(*) as total from likes where post_id=$post_id";
+              $result_likes = $conn->query($sql_likes);
+              $likeds = $result_likes->num_rows ? $result_likes->fetch_assoc()['total'] : 0;
+
               $sql_comments = "select comment.*, user.avatar, user.firstname, user.lastname, user.type from comment inner join user on comment.user_id=user.user_id and comment.post_id=$post_id order by comment.created desc";
               $result_comments = $conn->query($sql_comments);
 
@@ -178,7 +151,7 @@
             <div class="card-body">
               <p><?php echo $row['caption'] ?></p>
               <?php if ($image_ids) { ?>
-              <div class="lg-grid mb-3">
+              <div class="grid mb-3">
                 <?php
                 for ($i=0; $i<count($image_ids); $i++) {
                   $sql_image = "select * from image where image_id=$image_ids[$i]";
@@ -192,7 +165,9 @@
                       $path = "../client/uploads/";
                     }
                 ?>
-                  <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $path.$row_image['path'] ?>" style="background-image: url('<?php echo $path.$row_image['path'] ?>')"></a>
+                  <a data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $path.$row_image['path'] ?>">
+                    <img src="<?php echo $path.$row_image['path'] ?>" alt=""/>
+                  </a>
                 <?php
                     }}
                   }
@@ -202,7 +177,7 @@
               <div class="small d-flex justify-content-start">
                 <a href="#!" class="d-flex align-items-center mr-3 text-decoration-none text-gray-800" onclick="togglePostLike(<?php echo $post_id ?>, <?php echo $liked ?>)">
                   <i class="<?php echo $liked ? 'fa':'far' ?> fa-thumbs-up mr-1"></i>
-                  <p class="mb-0">Like (<?php echo $liked ?>)</p>
+                  <p class="mb-0">Like (<?php echo $likeds ?>)</p>
                 </a>
                 <a href="#!" class="d-flex align-items-center text-decoration-none text-gray-800">
                   <i class="far fa-comment-dots mr-1"></i>

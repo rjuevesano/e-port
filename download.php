@@ -1,21 +1,21 @@
 <?php
-  header("Content-Type: application/octet-stream");
-    
   $file = "pages/supplier/uploads/". $_GET["file"];
   $filename = $_GET['file'];
-    
-  header("Content-Disposition: attachment; filename=" . urlencode($filename));   
-  header("Content-Type: application/download");
-  header("Content-Description: File Transfer");            
-  header("Content-Length: " . filesize($file));
-    
-  flush(); // This doesn't really matter.
-    
-  $fp = fopen($file, "r");
-  while (!feof($fp)) {
-    echo fread($fp, 65536);
-    flush(); // This is essential for large downloads
-  }
 
-  fclose($fp); 
+  if (strpos($filename, ".pdf") !== false) {
+    // Header content type
+    header('Content-type: application/pdf');  
+    header('Content-Disposition: inline; filename="' . $filename . '"');
+    header('Content-Transfer-Encoding: binary');
+    header('Accept-Ranges: bytes');
+    // Read the file
+    @readfile($file);
+  } else {
+    if ($_SERVER['HTTP_HOST'] == 'localhost') {
+      $url = 'http://localhost/e-port-latest/'.$file;
+    } else {
+      $url = 'https://www.multimediaeport.com/'.$file;
+    }
+    header('Location: '.$url);
+  }
 ?>

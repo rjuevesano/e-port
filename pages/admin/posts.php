@@ -243,7 +243,7 @@
                                       <div>
                                         <h6 class="fw-bold mb-1"><?php echo $row_comment['firstname']." ".$row_comment['lastname'] ?></h6>
                                         <div class="d-flex align-items-center mb-3">
-                                          <p class="mb-0" style="font-size: 12px;"><?php echo date_format(date_create($row_comment['created']), 'D, M j Y h:ia') ?></p>
+                                          <p class="mb-0" style="font-size: 12px;"><?php echo date('Y-m-d H:i:s', strtotime($row_comment['created']. ' + 8 hours')) ?></p>
                                         </div>
                                         <p class="mb-0"><?php echo $row_comment['message'] ?></p>
                                       </div>
@@ -263,7 +263,7 @@
                         <td><?php echo $row['caption'] ?></td>
                         <td><?php echo $image_ids ? count($image_ids) : '0' ?></td>
                         <td><span class="badge <?php echo $badge ?>"><?php echo $row['status'] ?></span></td>
-                        <td><?php echo $row['created'] ?></td>
+                        <td><?php echo date('Y-m-d H:i:s', strtotime($row['created']. ' + 8 hours')) ?></td>
                         <td>
                           <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deletePostModal<?php echo $post_id ?>">Delete</a>
                           <div class="modal fade" id="deletePostModal<?php echo $post_id ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">

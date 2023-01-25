@@ -102,7 +102,7 @@
       border-radius: 50%;
       border: 5px solid;
     }
-    .upload__inputfile {
+    .upload__inputfile2 {
       width: .1px;
       height: .1px;
       opacity: 0;
@@ -154,7 +154,7 @@
                                     <div class="ml-3">
                                       <label class="btn btn-primary">
                                         Change photo
-                                        <input type="file" accept="image/png, image/gif, image/jpeg" class="upload__inputfile">
+                                        <input type="file" accept="image/png, image/gif, image/jpeg" class="upload__inputfile2">
                                       </label>
                                     </div>
                                   </div>
@@ -324,7 +324,7 @@
     });
 
     function ImgUpload2() {
-      $('.upload__inputfile').each(function () {
+      $('.upload__inputfile2').each(function () {
         $(this).on('change', function (e) {
           var files = e.target.files;
           var reader = new FileReader();

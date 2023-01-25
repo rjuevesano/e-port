@@ -196,49 +196,6 @@
     .required {
       color: red;
     }
-    .lg-grid {
-      position: relative;
-      display: block;
-      height: 37.8rem !important;
-    }
-    .lb-item {
-      position: absolute;
-      background-position: 50%;
-      background-repeat: no-repeat;
-      background-size: cover;
-      border-top: 2px solid #fff;
-      border-right: 2px solid #fff;
-      cursor: pointer;
-      width: 50%;
-    }
-    .lb-item:first-child {
-      height: 50%;
-    }
-    .lb-item:nth-child(2) {
-      height: 50%;
-      bottom: 0;
-      top: auto;
-    }
-    .lb-item:nth-child(3) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(4) {
-      height: 33.3333333%;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
-    .lb-item:nth-child(5) {
-      height: 33.3333333%;
-      bottom: 0;
-      top: auto;
-      left: auto;
-      right: 0;
-      border-right: 0;
-    }
     .rate {
       float: left;
       height: 46px;
@@ -273,6 +230,18 @@
     .rate > input:checked ~ label:hover ~ label,
     .rate > label:hover ~ input:checked ~ label {
         color: #c59b08;
+    }
+    .grid { 
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-gap: 20px;
+      align-items: stretch;
+    }
+    .grid img {
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 6px 0px  rgba(0,0,0,0.3);
+      width: 200px;
+      height: 200px;
     }
   </style>
 </head>
@@ -360,7 +329,7 @@
                         <div class="card-body">
                           <p><?php echo $row_post['caption'] ?></p>
                           <?php if ($image_ids) { ?>
-                          <div class="lg-grid mb-3">
+                          <div class="grid mb-3">
                           <?php
                             for ($i=0; $i<count($image_ids); $i++) {
                               $sql_image = "select * from image where image_id=$image_ids[$i]";
@@ -377,7 +346,9 @@
                                   }
                                 }
                             ?>
-                              <a class="lb-item" data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $image ?>" style="background-image: url('<?php echo $image ?>')"></a>
+                              <a data-fslightbox="gallery<?php echo $post_id ?>" href="<?php echo $image ?>">
+                                <img src="<?php echo $image ?>" alt=""/>
+                              </a>
                             <?php
                                 }}
                               }

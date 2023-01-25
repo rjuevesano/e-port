@@ -19,17 +19,50 @@
       $portfolio_url = validate($_POST['portfolio_url']);
       $about = validate($_POST['about']);
 
-      $filename = '';
+      $file_curriculum = '';
+      $file_id1 = '';
+      $file_id2 = '';
+      $file_permit = '';
 
-      if (isset($_POST['currentfile'])) {
-        $location = "uploads/".$_POST['currentfile'];
+      if (isset($_POST['currentfile_curriculum']) && isset($_FILES['usercurriculum'])) {
+        $location = "uploads/".$_POST['currentfile_curriculum'];
+        unlink($location);
+      }
+      if (isset($_POST['currentfile_id1']) && isset($_FILES['userid1'])) {
+        $location = "uploads/".$_POST['currentfile_id1'];
+        unlink($location);
+      }
+      if (isset($_POST['currentfile_id2']) && isset($_FILES['userid2'])) {
+        $location = "uploads/".$_POST['currentfile_id2'];
+        unlink($location);
+      }
+      if (isset($_POST['currentfile_permit']) && isset($_FILES['userpemit'])) {
+        $location = "uploads/".$_POST['currentfile_permit'];
         unlink($location);
       }
 
-      if (isset($_FILES['userfile'])) {
-        $tmpFilePath = $_FILES['userfile']['tmp_name'];
-        $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
-        $location = "uploads/".$filename;
+      if (isset($_FILES['usercurriculum'])) {
+        $tmpFilePath = $_FILES['usercurriculum']['tmp_name'];
+        $file_curriculum = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["usercurriculum"]["name"]);
+        $location = "uploads/".$file_curriculum;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userid1'])) {
+        $tmpFilePath = $_FILES['userid1']['tmp_name'];
+        $file_id1 = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userid1"]["name"]);
+        $location = "uploads/".$file_id1;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userid2'])) {
+        $tmpFilePath = $_FILES['userid2']['tmp_name'];
+        $file_id2 = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userid2"]["name"]);
+        $location = "uploads/".$file_id2;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userpemit'])) {
+        $tmpFilePath = $_FILES['userpemit']['tmp_name'];
+        $file_permit = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userpemit"]["name"]);
+        $location = "uploads/".$file_permit;
         move_uploaded_file($tmpFilePath, $location);
       }
 
@@ -44,17 +77,23 @@
         ]);
       }
 
-      if ($password && $filename) {
-        $password = md5($_POST['password']);
-        $sql = "update user set username='$username', password='$password', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about', file='$filename' where user_id=$user_id";
-      } else if ($password) {
-        $password = md5($_POST['password']);
-        $sql = "update user set username='$username', password='$password', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about' where user_id=$user_id";
-      } else if ($filename) {
-        $sql = "update user set username='$username', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about', file='$filename' where user_id=$user_id";
-      } else {
-        $sql = "update user set username='$username', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about' where user_id=$user_id";
+      $sql = "update user set username='$username', firstname='$firstname', lastname='$lastname', mobile='$mobile', address='$address', facebook_url='$facebook_url', portfolio_url='$portfolio_url', about='$about'";
+      if ($password) {
+        $sql .= ", password='$password'";
       }
+      if ($file_curriculum) {
+        $sql .= ", file_curriculum='$file_curriculum'";
+      }
+      if ($file_id1) {
+        $sql .= ", file_id1='$file_id1'";
+      }
+      if ($file_id2) {
+        $sql .= ", file_id2='$file_id2'";
+      }
+      if ($file_permit) {
+        $sql .= ", file_permit='$file_permit'";
+      }
+      $sql .= " where user_id=$user_id";
       $conn->query($sql);
       json_response([
         'success' => true,
@@ -67,16 +106,18 @@
       unlink($location);
 
       $tmpFilePath = $_FILES['files']['tmp_name'];
-      $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["files"]["name"]);
-      $location = "uploads/".$filename;
-      move_uploaded_file($tmpFilePath, $location);
-
-      $sql = "update user set avatar='$filename' where user_id=$user_id";
-      $conn->query($sql);
-      json_response([
-        'success' => true,
-        'message' => 'Successfully updated.'
-      ]);
+      $file_curriculum = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["files"]["name"]);
+      $location = "uploads/".$file_curriculum;
+      $uploaded = move_uploaded_file($tmpFilePath, $location);
+      
+      if ($uploaded) {
+        $sql = "update user set avatar='$file_curriculum' where user_id=$user_id";
+        $conn->query($sql);
+        json_response([ 
+          'success' => true,
+          'message' => 'Successfully updated.'
+        ]);
+      }
     }
   }
 ?>
@@ -185,17 +226,60 @@
                   <div class="col">
                     <div class="form-outline" style="display: flex; flex-direction: column;">
                       <label class="form-label" for="form3Example1">UPLOAD CURRICULUM VITAE</label>
-                      <input type="file" name="userfile" accept=".pdf">
+                      <input type="file" name="usercurriculum" accept=".pdf, image/*">
                     </div>
+                    <?php if ($row['file_curriculum']) { ?>
+                    <div class="row mb-4 mt-2">
+                      <div class="col">
+                        <a href="../../download.php?file=<?php echo $row['file_curriculum'] ?>" target="_blank" class="btn btn-primary">VIEW CURRICULUM VITAE</a>
+                      </div>
+                    </div>
+                    <?php } ?>
                   </div>
                 </div>
-                <?php if ($row['file']) { ?>
                 <div class="row mb-4">
                   <div class="col">
-                    <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
+                    <div class="form-outline" style="display: flex; flex-direction: column;">
+                      <label class="form-label" for="form3Example1">UPLOAD 2 VALID IDS</label>
+                      <input type="file" name="userid1" accept=".pdf, image/*">
+                    </div>
+                    <?php if ($row['file_id1']) { ?>
+                    <div class="row mb-4 mt-2">
+                      <div class="col">
+                        <a href="../../download.php?file=<?php echo $row['file_id1'] ?>" target="_blank" class="btn btn-primary">VIEW ID#1</a>
+                      </div>
+                    </div>
+                    <?php } ?>
+                  </div>
+                  <div class="col">
+                    <div class="form-outline" style="display: flex; flex-direction: column;">
+                      <label class="form-label" for="form3Example1">&nbsp;</label>
+                      <input type="file" name="userid2" accept=".pdf, image/*">
+                    </div>
+                    <?php if ($row['file_id2']) { ?>
+                    <div class="row mb-4 mt-2">
+                      <div class="col">
+                        <a href="../../download.php?file=<?php echo $row['file_id2'] ?>" target="_blank" class="btn btn-primary">VIEW ID#2</a>
+                      </div>
+                    </div>
+                    <?php } ?>
                   </div>
                 </div>
-                <?php } ?>
+                <div class="row mb-4">
+                  <div class="col">
+                    <div class="form-outline" style="display: flex; flex-direction: column;">
+                      <label class="form-label" for="form3Example1">UPLOAD BUSINESS PERMIT</label>
+                      <input type="file" name="userpemit" accept=".pdf, image/*">
+                    </div>
+                    <?php if ($row['file_permit']) { ?>
+                    <div class="row mb-4 mt-2">
+                      <div class="col">
+                        <a href="../../download.php?file=<?php echo $row['file_permit'] ?>" target="_blank" class="btn btn-primary">VIEW PERMIT</a>
+                      </div>
+                    </div>
+                    <?php } ?>
+                  </div>
+                </div>
                 <div class="form-outline mb-4">
                   <label class="form-label" for="form3Example3">About</label>
                   <textarea rows="4" class="form-control" name="about"><?php echo $row['about'] ?></textarea>
@@ -294,7 +378,10 @@
       var address = document.getElementsByName("address")[0].value;
       var facebook_url = document.getElementsByName("facebook_url")[0].value;
       var portfolio_url = document.getElementsByName("portfolio_url")[0].value;
-      var file = document.getElementsByName("userfile")[0].files;
+      var usercurriculum = document.getElementsByName("usercurriculum")[0].files;
+      var userid1 = document.getElementsByName("userid1")[0].files;
+      var userid2 = document.getElementsByName("userid2")[0].files;
+      var userpemit = document.getElementsByName("userpemit")[0].files;
       var about = document.getElementsByName("about")[0].value;
       var username = document.getElementsByName("username")[0].value;
       var password = document.getElementsByName("password")[0].value;
@@ -309,8 +396,14 @@
       formData.append('address', address);
       formData.append('facebook_url', facebook_url);
       formData.append('portfolio_url', portfolio_url);
-      formData.append("userfile", file[0]);
-      formData.append('currentfile', '<?php echo $row['file'] ?>');
+      formData.append("usercurriculum", usercurriculum[0]);
+      formData.append("userid1", userid1[0]);
+      formData.append("userid2", userid2[0]);
+      formData.append("userpemit", userpemit[0]);
+      formData.append('currentfile_curriculum', '<?php echo $row['file_curriculum'] ?>');
+      formData.append('currentfile_id1', '<?php echo $row['file_id1'] ?>');
+      formData.append('currentfile_id2', '<?php echo $row['file_id2'] ?>');
+      formData.append('currentfile_permit', '<?php echo $row['file_permit'] ?>');
       formData.append('about', about);
       formData.append('username', username);
       formData.append('password', password);

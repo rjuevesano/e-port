@@ -27,12 +27,33 @@
       $address = validate($_POST['address']) or '';
       $facebook_url = validate($_POST['facebook_url']) or '';
       $portfolio_url = validate($_POST['portfolio_url']) or '';
-      $filename = '';
+      $file_curriculum = '';
+      $file_id1 = '';
+      $file_id2 = '';
+      $file_permit = '';
 
-      if (isset($_FILES['userfile'])) {
-        $tmpFilePath = $_FILES['userfile']['tmp_name'];
-        $filename = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userfile"]["name"]);
-        $location = "pages/supplier/uploads/".$filename;
+      if (isset($_FILES['usercurriculum'])) {
+        $tmpFilePath = $_FILES['usercurriculum']['tmp_name'];
+        $file_curriculum = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["usercurriculum"]["name"]);
+        $location = "pages/supplier/uploads/".$file_curriculum;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userid1'])) {
+        $tmpFilePath = $_FILES['userid1']['tmp_name'];
+        $file_id1 = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userid1"]["name"]);
+        $location = "pages/supplier/uploads/".$file_id1;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userid2'])) {
+        $tmpFilePath = $_FILES['userid2']['tmp_name'];
+        $file_id2 = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userid2"]["name"]);
+        $location = "pages/supplier/uploads/".$file_id2;
+        move_uploaded_file($tmpFilePath, $location);
+      }
+      if (isset($_FILES['userpemit'])) {
+        $tmpFilePath = $_FILES['userpemit']['tmp_name'];
+        $file_permit = strtotime(date('y-m-d H:i')).'_'.basename($_FILES["userpemit"]["name"]);
+        $location = "pages/supplier/uploads/".$file_permit;
         move_uploaded_file($tmpFilePath, $location);
       }
 
@@ -48,7 +69,7 @@
 
       $password = md5($_POST['password']);
       $status = $type == 'CLIENT' ? 'ACTIVE' : 'PENDING';
-      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url, file) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url', '$filename')";
+      $sql = "insert into user (username, password, type, status, firstname, lastname, mobile, address, facebook_url, portfolio_url, file_curriculum, file_id1, file_id2, file_permit) values ('$username', '$password', '$type', '$status', '$firstname', '$lastname', '$mobile', '$address', '$facebook_url', '$portfolio_url', '$file_curriculum', '$file_id1', '$file_id2', '$file_permit')";
       $conn->query($sql);
       $_SESSION['user_id'] = $conn->insert_id;
       $_SESSION['type'] = $type;
@@ -145,13 +166,13 @@
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <input type="text" class="form-control" placeholder="Mobile" name="mobile" onkeypress="return isNumeric(event)">
+                    <input type="text" class="form-control" placeholder="Mobile" name="mobile" required onkeypress="return isNumeric(event)">
                   </div>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" placeholder="Address" name="address">
+                    <input type="text" class="form-control" placeholder="Address" name="address" required>
                   </div>
                 </div>
-                <div class="form-group row" id="more" style="display:none">
+                <div class="form-group row supplier" style="display:none">
                   <div class="col-sm-6 mb-3 mb-sm-0">
                     <input type="text" id="inputId" class="form-control" placeholder="Facebook" name="facebook_url">
                   </div>
@@ -159,10 +180,26 @@
                     <input type="text" class="form-control" placeholder="Portfolio" name="portfolio_url">
                   </div>
                 </div>
-                <div class="form-group row" id="more2" style="display:none">
+                <div class="form-group row supplier" style="display:none">
                   <div class="col-sm-6 mb-3 mb-sm-0">
-                    <label>UPLOAD CURRICULUM VITAE</label>
-                    <input type="file" name="userfile" accept=".pdf">
+                    <label>UPLOAD CURRICULUM VITAE <span style="color:red">*</span></label>
+                    <input type="file" name="usercurriculum" accept=".pdf, image/*">
+                  </div>
+                </div>
+                <div class="form-group row supplier" style="display:none">
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <label>UPLOAD 2 VALID IDS <span style="color:red">*</span></label>
+                    <input type="file" name="userid1" accept=".pdf, image/*">
+                  </div>
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <label>&nbsp;</label>
+                    <input type="file" name="userid2" accept=".pdf, image/*">
+                  </div>
+                </div>
+                <div class="form-group row supplier" style="display:none">
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <label>UPLOAD BUSINESS PERMIT <span style="color:red">*</span></label>
+                    <input type="file" name="userpemit" accept=".pdf, image/*">
                   </div>
                 </div>
                 <hr class="my-4">
@@ -198,13 +235,24 @@
   <script src="js/sb-admin-2.min.js"></script>
   <script>
     function accountType() {
-      var type =document.getElementsByName('type')[0].value;
+      var type = document.getElementsByName('type')[0].value;
+
       if (type == 'CLIENT') {
-        document.getElementById('more').style.display = 'none';
-        document.getElementById('more2').style.display = 'none';
+        $(".supplier").css({display: 'none'});
+        document.getElementsByName('facebook_url')[0].removeAttribute('required');
+        document.getElementsByName('portfolio_url')[0].removeAttribute('required');
+        document.getElementsByName('usercurriculum')[0].removeAttribute('required');
+        document.getElementsByName('userid1')[0].removeAttribute('required');
+        document.getElementsByName('userid2')[0].removeAttribute('required');
+        document.getElementsByName('userpemit')[0].removeAttribute('required');
       } else {
-        document.getElementById('more').style.display = 'flex';
-        document.getElementById('more2').style.display = 'flex';
+        $(".supplier").css({display: 'flex'});
+        document.getElementsByName('facebook_url')[0].setAttribute('required', true);
+        document.getElementsByName('portfolio_url')[0].setAttribute('required', true);
+        document.getElementsByName('usercurriculum')[0].setAttribute('required', true);
+        document.getElementsByName('userid1')[0].setAttribute('required', true);
+        document.getElementsByName('userid2')[0].setAttribute('required', true);
+        document.getElementsByName('userpemit')[0].setAttribute('required', true);
       }
     }
   </script>

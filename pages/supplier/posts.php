@@ -29,10 +29,13 @@
             array_push($image_ids, $conn->insert_id);
           }
         }
-        $image_ids_str = json_encode($image_ids);
-        $status = $user_status == 'APPROVED' ? 'PUBLISHED' : 'PENDING';
-        $sql = "insert into post (user_id, caption, image_ids, status) values ('$user_id', '$caption', '$image_ids_str', '$status')";
-        $conn->query($sql);
+        
+        if (count($image_ids) == $total) { 
+          $image_ids_str = json_encode($image_ids);
+          $status = $user_status == 'APPROVED' ? 'PUBLISHED' : 'PENDING';
+          $sql = "insert into post (user_id, caption, image_ids, status) values ('$user_id', '$caption', '$image_ids_str', '$status')";
+          $conn->query($sql);
+        }
       } else {
         $status = $user_status == 'APPROVED' ? 'PUBLISHED' : 'PENDING';
         $sql = "insert into post (user_id, caption, status) values ('$user_id', '$caption', '$status')";

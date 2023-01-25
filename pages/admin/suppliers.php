@@ -151,7 +151,10 @@
                                       </a>
                                     </div>
                                     <div>
-                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
+                                      <?php if ($row['file_curriculum']) { ?><a href="../../download.php?file=<?php echo $row['file_curriculum'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW CURRICULUM VITAE</a><?php } ?>
+                                      <?php if ($row['file_id1']) { ?><a href="../../download.php?file=<?php echo $row['file_id1'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW ID#1</a><?php } ?>
+                                      <?php if ($row['file_id2']) { ?><a href="../../download.php?file=<?php echo $row['file_id2'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW ID#2</a><?php } ?>
+                                      <?php if ($row['file_permit']) { ?><a href="../../download.php?file=<?php echo $row['file_permit'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW PERMIT</a><?php } ?>
                                     </div>
                                     <div class="d-flex justify-content-between text-center mt-5 mb-2">
                                       <div>
@@ -209,7 +212,10 @@
                                       </a>
                                     </div>
                                     <div>
-                                      <a href="../../download.php?file=<?php echo $row['file'] ?>" target="_blank" class="btn btn-primary">GENERATE CURRICULUM VITAE</a>
+                                      <?php if ($row['file_curriculum']) { ?><a href="../../download.php?file=<?php echo $row['file_curriculum'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW CURRICULUM VITAE</a><?php } ?>
+                                      <?php if ($row['file_id1']) { ?><a href="../../download.php?file=<?php echo $row['file_id1'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW ID#1</a><?php } ?>
+                                      <?php if ($row['file_id2']) { ?><a href="../../download.php?file=<?php echo $row['file_id2'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW ID#2</a><?php } ?>
+                                      <?php if ($row['file_permit']) { ?><a href="../../download.php?file=<?php echo $row['file_permit'] ?>" target="_blank" class="btn btn-primary mb-2">VIEW PERMIT</a><?php } ?>
                                     </div>
                                 </div>
                                 <?php if ($row['status'] !== 'APPROVED') { ?>
